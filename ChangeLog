@@ -1,0 +1,13 @@
+(add new changes on top of this file)
+13-08-20 Franz Holzinger <franz@ttproducts.de>
+
+	* new fields usecounter, acquired_days and acquired_groups
+	* support for agency extension
+
+13-05-24 Franz Holzinger <franz@ttproducts.de>
+
+	* compatible with TYPO3 6.0.5
+
+07-03-12 Martin Siebel  <m@siebelcom.de>
+
+	* Initial release

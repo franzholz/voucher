@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+    <meta type="array">
+        <description>texts for the voucher table</description>
+        <type>database</type>
+        <csh_table></csh_table>
+        <labelContext type="array">
+        </labelContext>
+    </meta>
+    <data type="array">
+        <languageKey index="default" type="array">
+            <label index="tx_voucher_codes">tx_voucher_codes</label>
+            <label index="tx_voucher_codes.fe_users_uid">Front End User</label>
+            <label index="tx_voucher_codes.reusable">unendingly reusable</label>
+            <label index="tx_voucher_codes.usecounter">usability count</label>
+            <label index="tx_voucher_codes.code">voucher code</label>
+            <label index="tx_voucher_codes.amount">amount</label>
+            <label index="tx_voucher_codes.amount_type">type of the amount</label>
+            <label index="tx_voucher_codes.amount_type.I.0">money</label>
+            <label index="tx_voucher_codes.amount_type.I.1">percentage</label>
+            <label index="tx_voucher_codes.acquired">acquired</label>
+            <label index="tx_voucher_codes.acquired_days">acquired days for user account</label>
+            <label index="tx_voucher_codes.acquired_groups">acquired group memberships</label>
+			<label index="fe_users.tx_voucher_usedcode">used old voucher code</label>
+        </languageKey>
+        <languageKey index="de" type="array">
+            <label index="tx_voucher_codes">tx_voucher_codes</label>
+            <label index="tx_voucher_codes.fe_users_uid">Frontend Benutzer</label>
+            <label index="tx_voucher_codes.reusable">endlos verwendbar</label>
+            <label index="tx_voucher_codes.usecounter">Anzahl der mehrfachen Verwendungen</label>
+            <label index="tx_voucher_codes.code">Gutschein Code</label>
+            <label index="tx_voucher_codes.amount">Betrag</label>
+            <label index="tx_voucher_codes.amount_type">Art des Betrags</label>
+            <label index="tx_voucher_codes.amount_type.I.0">Geld</label>
+            <label index="tx_voucher_codes.amount_type.I.1">Prozente</label>
+            <label index="tx_voucher_codes.acquired">erworben</label>
+            <label index="tx_voucher_codes.acquired_days">erworbene Tage für Benutzer Konto</label>
+            <label index="tx_voucher_codes.acquired_groups">erworbene Gruppenzugehörigkeiten</label>
+			<label index="fe_users.tx_voucher_usedcode">verwendeter alter Gutschrift Code</label>
+        </languageKey>
+    </data>
+</T3locallang>
