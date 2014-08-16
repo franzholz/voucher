@@ -20,7 +20,6 @@ if (
 	);
 }
 
-
 $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['tt_products']['extendingTCA'][] = VOUCHER_EXT;
 
 $classPath = 'EXT:' . $_EXTKEY . '/hooks/agency/class.tx_voucher_agency.php:&tx_voucher_agency';
@@ -30,7 +29,5 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['agency']['registrationProcess'][] = $cla
 $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['agency']['model'][] = $classPath;
 $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['agency']['registrationProcess_afterSaveCreate'][] = $classPath;
 $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['agency']['confirmRegistrationClass'][] = $classPath;
-
-
 
 ?>

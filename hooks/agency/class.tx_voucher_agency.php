@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2013 Franz Holzinger <franz@ttproducts.de>
+*  (c) 2014 Franz Holzinger <franz@ttproducts.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -154,56 +154,102 @@ class tx_voucher_agency {
 	}
 
 	public function registrationProcess_afterSaveCreate (
+		tx_agency_controldata $controlDataObj,
 		$theTable,
-		$dataArray,
-		$origArray,
+		array $dataArray,
+		array $origArray,
 		$token,
-		$newRow,
+		array &$newRow,
 		$cmd,
 		$cmdKey,
 		$pid,
 		$fieldList,
-		$pObj // object of type tx_agency_data
+		tx_agency_data $pObj
 	) {
+		$result = TRUE;
+		$newFieldList = '';
+		$conf = $controlDataObj->getConf();
+
 		if (
 			is_int($dataArray['uid']) &&
 			$dataArray['captcha_response'] != '' &&
 			$newRow['tx_voucher_usedcode'] == ''
 		) {
-			$row = array();
-			$row['tx_voucher_usedcode'] = $dataArray['captcha_response'];
-			$where_clause = 'uid = ' . intval($dataArray['uid']);
-
-			$GLOBALS['TYPO3_DB']->exec_UPDATEquery(
-				$theTable,
-				$where_clause,
-				$row
-			);
-
-			$codeRow = tx_voucher_api::getRowFromCode($row['tx_voucher_usedcode']);
+			$code = $dataArray['captcha_response'];
+			$codeRow = tx_voucher_api::getRowFromCode($code);
 
 			if (is_array($codeRow)) {
 				tx_voucher_api::reduceCountOrDisable($codeRow);
 			}
+
+			if (
+				!$conf['enableEmailConfirmation']
+			) {
+				$errorCode = '';
+				$result =
+					tx_voucher_api::redeemVoucher(
+						$code,
+						'fe_users',
+						$newRow,
+						$newFieldList,
+						$errorCode
+					);
+			}
+
+			if ($result) {
+				$row = array();
+				$row['tx_voucher_usedcode'] = $code;
+				if ($newFieldList != '') {
+					$newFieldArray = explode(',', $newFieldList);
+					foreach ($newFieldArray as $newField) {
+						if ($newField != '') {
+							$row[$newField] = $newRow[$newField];
+						}
+					}
+				}
+				$where_clause = 'uid = ' . intval($dataArray['uid']);
+				$GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+					$theTable,
+					$where_clause,
+					$row
+				);
+			}
 		}
+
+		return $result;
 	}
 
 	public function confirmRegistrationClass_preProcess (
+		tx_agency_controldata $controlDataObj,
 		$theTable,
 		&$row,
 		&$newFieldList,
-		$confObj,
-		$invokingObj
+		$invokingObj,
+		$errorCode
 	) {
-		$conf = $confObj->getConf();
+		$result = TRUE;
+		$conf = $controlDataObj->getConf();
 
-		if (!$conf['enableAdminReview']) {
-			tx_voucher_api::redeemVoucher($theTable, $row, $newFieldList);
+		if (
+			!$errorCode &&
+			!$conf['enableAdminReview']
+		) {
+			$result =
+				tx_voucher_api::redeemVoucher(
+					$row['tx_voucher_usedcode'],
+					$theTable,
+					$row,
+					$newFieldList,
+					$errorCode
+				);
 		}
+
+		return $result;
 	}
 }
 
 if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/voucher/hooks/agency/class.tx_voucher_agency.php'])) {
 	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/voucher/hooks/agency/class.tx_voucher_agency.php']);
 }
+
 ?>

@@ -39,6 +39,9 @@
  */
 
 
+
+
+
 class tx_voucher_api {
 
 	static public function getRowFromCode ($theCode, $bEnable = TRUE) {
@@ -46,7 +49,6 @@ class tx_voucher_api {
 		$result = FALSE;
 
 		if ($theCode != '') {
-			$cObj = t3lib_div::getUserObj('&tx_div2007_cobj');
 			$voucherTable = 'tx_voucher_codes';
 
 			$where_clause =
@@ -56,10 +58,10 @@ class tx_voucher_api {
 				);
 
 			if ($bEnable) {
-				$where_enable = $cObj->enableFields($voucherTable);
+				$where_enable =  tx_div2007_alpha5::enableFields($voucherTable);
 				$where_clause .= $where_enable;
 
-				$where_enable = 'AND (usecounter>0 OR reusable=1)';
+				$where_enable = 'AND (usecounter>0 OR reusable=1 OR reusable=2)';
 				$where_clause .= $where_enable;
 			}
 
@@ -77,7 +79,8 @@ class tx_voucher_api {
 		if (
 			$codeRow['uid'] &&
 			$codeRow['deleted'] == '0' &&
-			!$codeRow['reusable']
+			$codeRow['reusable'] != '1' &&
+			$codeRow['reusable'] != '2'
 		) {
 			$voucherTable = 'tx_voucher_codes';
 			$row = array();
@@ -102,30 +105,443 @@ class tx_voucher_api {
 	}
 
 	static public function redeemVoucher (
+		$code,
 		$theTable,
 		&$row,
-		&$newFieldList
+		&$newFieldList,
+		&$errorCode
 	) {
-		if ($theTable == 'fe_users' && $row['tx_voucher_usedcode'] != '') {
-			$codeRow = self::getRowFromCode($row['tx_voucher_usedcode'], FALSE);
-			if (is_array($codeRow) && $codeRow['uid'] && $codeRow['acquired_groups'] != '') {
-				$newFieldArray = explode(',', $newFieldList);
-				$origGroupArray = explode(',', $row['usergroup']);
+		$result = FALSE;
+
+		if ($theTable == 'fe_users' && $code != '') {
+			$codeRow = self::getRowFromCode($code, FALSE);
+			if (
+				is_array($codeRow) &&
+				$codeRow['uid'] &&
+				$codeRow['acquired_groups'] != ''
+			) {
+				$newFieldArray = array();
+				if ($newFieldList != '') {
+					$newFieldArray = explode(',', $newFieldList);
+				}
+				$origGroupArray = $row['usergroup'];
+				if (!is_array($row['usergroup'])) {
+					$origGroupArray = explode(',', $row['usergroup']);
+				}
 				$codeGroupArray = explode(',', $codeRow['acquired_groups']);
 				$newGroupArray = array_merge($origGroupArray, $codeGroupArray);
 				$newGroupArray = array_unique($newGroupArray);
 				$row['usergroup'] = implode(',', $newGroupArray);
 				$newFieldArray[] = 'usergroup';
 
+				$time = time();
+				$acquiredSeconds = 0;
+
+				if (!empty($GLOBALS['TYPO3_CONF_VARS']['SYS']['serverTimeZone'])) {
+					$time += ($GLOBALS['TYPO3_CONF_VARS']['SYS']['serverTimeZone'] * 3600);
+				}
+
 				if ($codeRow['acquired_days']) {
-					$row['endtime'] = time() + ($codeRow['acquired_days'] * 24 * 60 * 60);
-					$newFieldArray[] = 'endtime';
+					$acquiredSeconds = $codeRow['acquired_days'] * 24 * 60 * 60;
 				}
 
 				$newFieldArray = array_unique($newFieldArray);
 				$newFieldList = implode(',', $newFieldArray);
+
+				$result = self::addLimitedGroups(
+					$codeRow,
+					$time,
+					$acquiredSeconds,
+					$row['uid'],
+					$codeGroupArray,
+					$errorCode,
+					0
+				);
 			}
 		}
+
+		return $result;
+	}
+
+	static public function checkCodeFormerlyUsed (
+		$code,
+		$rowArray,
+		&$errorCode
+	) {
+		$result = TRUE;
+
+		if (
+			is_array($rowArray) &&
+			count($rowArray)
+		) {
+			foreach ($rowArray as $row) {
+				$codeArray = explode(',', $row['codes']);
+				if (in_array($code, $codeArray)) {
+					$result = FALSE;
+					$errorCode = 1;
+					break;
+				}
+			}
+		}
+
+		return $result;
+	}
+
+	/* $errorCode: 1 ... code has already been used.
+	 *             2 ... database write error
+	*/
+	static public function addLimitedGroups (
+		$codeRow,
+		$time,
+		$acquiredSeconds,
+		$theUser,
+		$groupArray,
+		&$errorCode,
+		$pid = 0
+	) {
+		$code = $codeRow['code'];
+		$result = TRUE;
+		$errorCode = 0;
+
+		if (is_array($groupArray)) {
+			$addGroupArray = array();
+
+			$fieldArray = array (
+				'pid' => intval($pid),
+				'tstamp' => $time,
+				'deleted' => 0,
+				'hidden' => 0,
+			);
+
+			if ($acquiredSeconds) {
+				$fieldArray['endtime'] = $time + $acquiredSeconds;
+			}
+			$table = 'sys_agency_fe_users_limit_fe_groups';
+			$where_clause = 'fe_users_uid=' . intval($theUser);
+
+			$rowArray =
+				$GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+					'*',
+					$table,
+					$where_clause
+				);
+
+			if (
+				is_array($rowArray) &&
+				count($rowArray)
+			) {
+				$codeValid = TRUE;
+
+				if (
+					$codeRow['reusable'] != '2' &&
+					$codeRow['reusable'] != '4'
+				) {
+					$codeValid =
+						self::checkCodeFormerlyUsed(
+							$code,
+							$rowArray,
+							$errorCode
+						);
+				}
+
+				if (!$codeValid) {
+					$result = FALSE;
+				} else {
+					$foundGroupArray = array();
+
+					foreach ($rowArray as $row) {
+						if (in_array($row['fe_groups_uid'], $groupArray)) {
+							$codeArray = explode(',', $row['codes']);
+							if (
+								!in_array($code, $codeArray) ||
+								$codeRow['reusable']
+							) {
+								$updateFields = $fieldArray;
+								$endtime = $row['endtime'];
+								if ($time > $endtime) {
+									$endtime = $time;
+								}
+								$updateFields['endtime'] = $endtime + $acquiredSeconds; // add new time to an already acquired group
+								if (!in_array($code, $codeArray)) {
+									$updateFields['codes'] = $row['codes'] . ',' . $code;
+								}
+								$where = $where_clause . ' AND fe_groups_uid=' . intval($row['fe_groups_uid']);
+								$GLOBALS['TYPO3_DB']->exec_UPDATEquery($table, $where, $updateFields);
+							}
+						}
+						$foundGroupArray[] = $row['fe_groups_uid'];
+					}
+
+					$addGroupArray = array_diff($groupArray, $foundGroupArray);
+				}
+			} else {
+				$addGroupArray = $groupArray;
+			}
+
+			if (count($addGroupArray)) {
+
+				$insertFields = $fieldArray;
+				$insertFields['crdate'] = $time;
+
+				foreach ($addGroupArray as $theGroup) {
+					$insertFields['fe_users_uid'] = intval($theUser);
+					$insertFields['fe_groups_uid'] = intval($theGroup);
+					$insertFields['codes'] = $code;
+
+					$insertResult = $GLOBALS['TYPO3_DB']->exec_INSERTquery($table, $insertFields);
+					$newId = 0;
+					if ($insertResult) {
+						$newId = $GLOBALS['TYPO3_DB']->sql_insert_id();
+					}
+					if (!$newId) {
+						$result = FALSE;
+						break;
+					}
+				}
+			}
+		}
+
+		return $result;
+	}
+
+	static public function removeOutdatedGroups () {
+		$result = FALSE;
+		$table = 'fe_users';
+
+		$time = time();
+		$acquiredSeconds = 0;
+
+		if (!empty($GLOBALS['TYPO3_CONF_VARS']['SYS']['serverTimeZone'])) {
+			$time += ($GLOBALS['TYPO3_CONF_VARS']['SYS']['serverTimeZone'] * 3600);
+		}
+
+		$where_clause = '1=1';
+		$where_enable = tx_div2007_alpha5::enableFields($table);
+		$where_clause .= $where_enable;
+		$rowArray = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('*', $table, $where_clause);
+
+		if (
+			isset($rowArray) &&
+			is_array($rowArray)
+		) {
+			foreach ($rowArray as $row) {
+				if (!$row['usergroup']) {
+					continue;
+				}
+				$sysTable = 'sys_agency_fe_users_limit_fe_groups';
+				$where_clause_feuser =
+					$sysTable . '.fe_users_uid=' . intval($row['uid']);
+				$where_clause = $where_clause_feuser;
+				$where_clause .= ' AND ' . $sysTable . '.deleted=0 AND ' . $sysTable . '.hidden=0';
+				$ctrl = $GLOBALS['TCA'][$sysTable]['ctrl'];
+
+				if (is_array($ctrl)) {
+
+					if ($ctrl['enablecolumns']['endtime']) {
+						$field = $sysTable . '.' . $ctrl['enablecolumns']['endtime'];
+						$offsetDays = 1; // offset to the current date
+						$offsetSeconds = $offsetDays * 24 * 60 * 60;
+						$where_clause .= ' AND (' . $field . '>0 AND ' . $field . '<' . ($GLOBALS['SIM_ACCESS_TIME'] - $offsetSeconds) . ')';
+					}
+				}
+
+				$groupOutdatedArray =
+					$GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+						'*',
+						$sysTable,
+						$where_clause,
+						'',
+						'',
+						'',
+						'fe_groups_uid'
+					);
+
+				if (
+					isset($groupOutdatedArray) &&
+					is_array($groupOutdatedArray) &&
+					count($groupOutdatedArray)
+				) {
+					$outdatedGroupIds = array_keys($groupOutdatedArray);
+					$currentGroupIds = explode(',', $row['usergroup']);
+					$remainingGroupIds = array_diff($currentGroupIds, $outdatedGroupIds);
+					$fieldArray = array();
+					$fieldArray['usergroup'] = implode(',', $remainingGroupIds);
+
+					$GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+						$table,
+						'uid=' . intval($row['uid']),
+						$fieldArray
+					);
+
+					$fieldArray = array();
+					$fieldArray['deleted'] = 1;
+					$fieldArray['tstamp'] = $time;
+
+					$GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+						$sysTable,
+						$where_clause,
+						$fieldArray
+					);
+				}
+			}
+		}
+		$result = TRUE;
+
+		return $result;
+	}
+
+	static public function getGroupRowsByUser ($theUser, $bEnable = TRUE) {
+
+		$result = FALSE;
+
+		if ($theUser != '') {
+			$sysTable = 'sys_agency_fe_users_limit_fe_groups';
+
+			$where_clause =
+				'fe_users_uid=' . intval($theUser);
+
+			if ($bEnable) {
+				$where_enable = tx_div2007_alpha5::enableFields($sysTable);
+				$where_clause .= $where_enable;
+			}
+
+			$rowArray = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('*', $sysTable, $where_clause);
+			$result = $rowArray;
+		}
+
+		return $result;
+	}
+
+	static public function getCodesByUser (
+		$theUser,
+		$bEnable = TRUE
+	) {
+		$rowArray = self::getGroupRowsByUser($theUser, $bEnable);
+
+		$result = FALSE;
+
+		if (
+			$rowArray != FALSE &&
+			is_array($rowArray)
+		) {
+			$codesArray = array();
+			if (is_array($rowArray)) {
+				foreach ($rowArray as $row) {
+					$codesArray[] = $row['codes'];
+				}
+			}
+			$codes = implode(',', $codesArray);
+			$codesArray = explode(',', $codes);
+			$codesArray = array_unique($codesArray);
+			$result = implode(',', $codesArray);
+		}
+
+		return $result;
+	}
+
+
+	static public function groupOut (
+		$cObj,
+		$feUserRow,
+		$showGroupTimeRange = FALSE,
+		$where_clause = '',
+		$groupEnable = TRUE,
+		$expirationText = '',
+		array $headerTextArray = array() // required indexes: group, expiration, voucher
+	) {
+		$groupTable = 'fe_groups';
+		$groupCodeRowArray = FALSE;
+		$classTd = '<div class="td">';
+		$classTr = '<div class="tr">';
+		$classTable = '<div class="table">';
+		$divEnd = '</div>';
+
+		if ($showGroupTimeRange) {
+			$groupCodeRowArray = self::getGroupRowsByUser($feUserRow['uid'], TRUE);
+		}
+
+		if ($where_clause == '') {
+			$where_clause = 'uid IN (' . $feUserRow['usergroup'] . ')';
+		}
+
+		if ($groupEnable) {
+			$where_enable = $cObj->enableFields($groupTable);
+			$where_clause .= $where_enable;
+		}
+
+		$groupRowArray = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('*', $groupTable, $where_clause);
+
+		$result = '';
+		$outArray = array();
+		$groupOutArray = array();
+
+		if (is_array($groupRowArray)) {
+			foreach ($groupRowArray as $groupRow) {
+				$out = '';
+				$outDetails = '';
+
+				if (
+					$groupCodeRowArray &&
+					is_array($groupCodeRowArray)
+				) {
+					$foundGroup = FALSE;
+					foreach($groupCodeRowArray as $groupCodeRow) {
+						if ($groupCodeRow['fe_groups_uid'] == $groupRow['uid']) {
+							$enddate = '';
+							if ($groupCodeRow['endtime']) {
+								$enddate =  date('Y-m-d', $groupCodeRow['endtime']);
+							}
+							$outDetails = $classTd . $expirationText . ' ' . $enddate . $divEnd;
+							$outDetails .= $classTd . $groupCodeRow['codes'] . $divEnd;
+							$foundGroup = TRUE;
+							break;
+						}
+					}
+				}
+				$out = $classTr . $classTd . $groupRow['description'] . $divEnd . $outDetails . $divEnd;
+				$groupOutArray[] = $out;
+			}
+		}
+
+		$headerHtml = '';
+		foreach ($headerTextArray as $headerText) {
+			$headerHtml .= $classTd . $headerText . $divEnd;
+		}
+		$outArray[] = $classTr . $headerHtml . $divEnd;
+		$outArray[] = implode('', $groupOutArray) . '<br />';
+		$result = $classTable . implode('', $outArray) . $divEnd;
+		return $result;
+	}
+
+
+	/* $developer: TRUE during development. This is needed to deactivate the  browser´s cache for Javascript */
+	static public function getVoucherAjaxUrl (
+		$extKey,
+		$cObj,
+		$developer = FALSE
+	) {
+		$queryString = array(
+			'L' => t3lib_div::_GP('L'),
+			'no_cache' => 1,
+			'eID' => $extKey,
+		);
+
+		if ($developer) {
+			$queryString['time'] = time();
+		}
+
+		$linkConf = array('useCacheHash' => 0);
+
+		$target = '';
+		$reqURI = tx_div2007_alpha5::getTypoLink_URL_fh003(
+			$cObj,
+			$GLOBALS['TSFE']->id,
+			$queryString,
+			$target,
+			$linkConf
+		);
+
+		return $reqURI;
 	}
 }
 

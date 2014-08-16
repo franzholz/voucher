@@ -11,7 +11,12 @@
         <languageKey index="default" type="array">
             <label index="tx_voucher_codes">tx_voucher_codes</label>
             <label index="tx_voucher_codes.fe_users_uid">Front End User</label>
-            <label index="tx_voucher_codes.reusable">unendingly reusable</label>
+            <label index="tx_voucher_codes.reusable">reusable</label>
+            <label index="tx_voucher_codes.reusable.I.0">never</label>
+            <label index="tx_voucher_codes.reusable.I.1">unendingly by different users</label>
+            <label index="tx_voucher_codes.reusable.I.2">unendingly by different users or by the same user</label>
+            <label index="tx_voucher_codes.reusable.I.3">counted times by different users</label>
+            <label index="tx_voucher_codes.reusable.I.4">counted times by different users or by the same user</label>
             <label index="tx_voucher_codes.usecounter">usability count</label>
             <label index="tx_voucher_codes.code">voucher code</label>
             <label index="tx_voucher_codes.amount">amount</label>
@@ -26,7 +31,12 @@
         <languageKey index="de" type="array">
             <label index="tx_voucher_codes">tx_voucher_codes</label>
             <label index="tx_voucher_codes.fe_users_uid">Frontend Benutzer</label>
-            <label index="tx_voucher_codes.reusable">endlos verwendbar</label>
+            <label index="tx_voucher_codes.reusable">wiederverwendbar</label>
+            <label index="tx_voucher_codes.reusable.I.0">nie</label>
+            <label index="tx_voucher_codes.reusable.I.1">endlos von verschiedenen Benutzern</label>
+            <label index="tx_voucher_codes.reusable.I.2">endlos von verschiedenen Benutzern oder vom selben Benutzer</label>
+            <label index="tx_voucher_codes.reusable.I.3">gezählte Male von verschiedenen Benutzern</label>
+            <label index="tx_voucher_codes.reusable.I.4">gezählte Male von verschiedenen Benutzern oder vom selben Benutzer</label>
             <label index="tx_voucher_codes.usecounter">Anzahl der mehrfachen Verwendungen</label>
             <label index="tx_voucher_codes.code">Gutschein Code</label>
             <label index="tx_voucher_codes.amount">Betrag</label>

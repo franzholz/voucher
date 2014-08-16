@@ -87,8 +87,16 @@ $TCA['tx_voucher_codes'] = array (
 			'exclude' => 1,
 			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.reusable',
 			'config' => array (
-				'type' => 'check',
-				'default' => '0'
+				'type' => 'select',
+				'items' => array (
+					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.reusable.I.0', '0'),
+					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.reusable.I.1', '1'),
+					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.reusable.I.2', '2'),
+					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.reusable.I.3', '3'),
+					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.reusable.I.4', '4'),
+				),
+				'size' => 1,
+				'maxitems' => 1,
 			)
 		),
 		'usecounter' => array (
@@ -168,5 +176,6 @@ $TCA['tx_voucher_codes'] = array (
 		'1' => array('showitem' => 'starttime,endtime,fe_group'),
 	)
 );
+
 
 ?>

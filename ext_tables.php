@@ -27,6 +27,7 @@ $TCA['tx_voucher_codes'] = array (
 	)
 );
 
+
 t3lib_extMgm::addToInsertRecords('tx_voucher_codes');
 
 t3lib_extMgm::allowTableOnStandardPages('tx_voucher_codes');
@@ -34,7 +35,6 @@ t3lib_extMgm::allowTableOnStandardPages('tx_voucher_codes');
 if (TYPO3_MODE == 'BE') {
 	t3lib_extMgm::addModule('web', 'txvoucherM1', '', t3lib_extMgm::extPath($_EXTKEY) . 'mod1/');
 }
-
 
 if (TYPO3_MODE == "BE" || $loadTcaAdditions == TRUE) {
 
@@ -59,6 +59,5 @@ if (TYPO3_MODE == "BE" || $loadTcaAdditions == TRUE) {
 		'after:www,'
 	);
 }
-
 
 ?>

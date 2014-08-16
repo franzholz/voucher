@@ -35,3 +35,4 @@ CREATE TABLE tx_voucher_codes (
 CREATE TABLE fe_users (
 	tx_voucher_usedcode varchar(50) DEFAULT '',
 );
+

@@ -1,4 +1,10 @@
 (add new changes on top of this file)
+13-08-16 Franz Holzinger <franz@ttproducts.de>
+
+	* 4 types of the reusable code
+	* improved hooks and API
+	* support for user specific FE group endtimes which is used by the agency extension
+
 13-08-20 Franz Holzinger <franz@ttproducts.de>
 
 	* new fields usecounter, acquired_days and acquired_groups
