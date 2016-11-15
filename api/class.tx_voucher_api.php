@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2014 Franz Holzinger (franz@ttproducts.de)
+*  (c) 2016 Franz Holzinger (franz@ttproducts.de)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,8 +28,6 @@
  * Part of the voucher (Vouchercode Manager) extension.
  *
  * API functions
- *
- * $Id$
  *
  * @author  Franz Holzinger <franz@ttproducts.de>
  * @maintainer	Franz Holzinger <franz@ttproducts.de>
@@ -543,6 +541,92 @@ class tx_voucher_api {
 
 		return $reqURI;
 	}
+
+	// origin: http://stackoverflow.com/questions/1846202/php-how-to-generate-a-random-unique-alphanumeric-string/13733588#13733588
+	static public function crypto_rand_secure ($minimum, $maximum) {
+		$range = $maximum - $minimum;
+		if ($range < 1) return $minimum; // not so random...
+		$log = ceil(log($range, 2));
+		$bytes = (int) ($log / 8) + 1; // length in bytes
+		$bits = (int) $log + 1; // length in bits
+		$filter = (int) (1 << $bits) - 1; // set all lower bits to 1
+		do {
+			$rnd = hexdec(bin2hex(openssl_random_pseudo_bytes($bytes)));
+			$rnd = $rnd & $filter; // discard irrelevant bits
+		} while ($rnd >= $range);
+		return $minimum + $rnd;
+	}
+
+	static public function getToken (
+		$length,
+		$onlyUppercase = TRUE,
+		$specialCharacters = FALSE
+	) {
+		$token = "";
+		$codeAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+		if (!$onlyUppercase) {
+			$codeAlphabet .= strtolower($codeAlphabet);
+		}
+		$codeAlphabet .= '0123456789';
+		if ($specialCharacters) {
+			$codeAlphabet .= '§$%&/()[]{}+-#|<>';
+		}
+		$maximum = strlen($codeAlphabet) - 1;
+		for ($i=0; $i < $length; $i++) {
+			$token .= $codeAlphabet[self::crypto_rand_secure(0, $maximum)];
+		}
+		return $token;
+	}
+
+	static public function insertVoucher (
+		&$row,
+		$onlyUppercase = TRUE,
+		$specialCharacters = FALSE
+	) {
+		$result = TRUE;
+
+		$table = 'tx_voucher_codes';
+		if (!is_array($row)) {
+			$row = array();
+		}
+		$newRow = array();
+		$time = time();
+		if (!empty($GLOBALS['TYPO3_CONF_VARS']['SYS']['serverTimeZone'])) {
+			$time += ($GLOBALS['TYPO3_CONF_VARS']['SYS']['serverTimeZone'] * 3600);
+		}
+
+		$allowedFields = array_keys($GLOBALS['TCA'][$table]['columns']);
+		$allowedFields = array_merge(array('tstamp', 'crdate', 'deleted'), $allowedFields);
+		$title = 'AUTO';
+		if (isset($row['title'])) {
+			$title = $row['title'];
+		}
+
+		$newRow['tstamp'] = $time;
+		$newRow['crdate'] = $time;
+		$newRow['title'] = $title . '-' . date('Y-m-d H:i:s', $time);
+		$newRow['code'] = self::getToken($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize']);
+
+		foreach ($row as $field => $value) {
+			if (
+				isset($value) &&
+				in_array($field, $allowedFields)
+			) {
+				$newRow[$field] = $value;
+			}
+		}
+
+		$GLOBALS['TYPO3_DB']->exec_INSERTquery($table, $newRow);
+		$newId = $GLOBALS['TYPO3_DB']->sql_insert_id();
+
+		if ($newId) {
+			$newRow['uid'] = $newId;
+			$row = $newRow;
+		} else {
+			$result = FALSE;
+		}
+
+		return $result;
+	}
 }
 
-?>

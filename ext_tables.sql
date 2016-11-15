@@ -19,6 +19,7 @@ CREATE TABLE tx_voucher_codes (
 	usecounter int(11) DEFAULT '1' NOT NULL,
 	amount_type int(11) DEFAULT '0' NOT NULL,
 	amount decimal(19,2) DEFAULT '0.00' NOT NULL,
+	tax decimal(19,2) DEFAULT '0.00' NOT NULL,
 	note text NOT NULL,
 	acquired_days int(11) DEFAULT '0' NOT NULL,
 	acquired_groups tinytext,

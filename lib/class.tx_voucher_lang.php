@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2013 Franz Holzinger <franz@ttproducts.de>
+*  (c) 2014 Franz Holzinger <franz@ttproducts.de>
 *  All rights reserved
 *
 *  This script is part of the Typo3 project. The Typo3 project is
@@ -29,12 +29,10 @@
  *
  * language functions
  *
- * $Id$
- *
  * @author	Franz Holzinger <franz@ttproducts.de>
  *
  * @package TYPO3
- * @subpackage agency
+ * @subpackage voucher
  *
  *
  */
@@ -57,4 +55,4 @@ class tx_voucher_lang extends tx_div2007_alpha_language_base {
 if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/voucher/lib/class.tx_voucher_lang.php'])) {
 	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/voucher/libclass.tx_voucher_lang.php']);
 }
-?>
+

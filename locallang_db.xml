@@ -26,6 +26,7 @@
             <label index="tx_voucher_codes.acquired">acquired</label>
             <label index="tx_voucher_codes.acquired_days">acquired days for user account</label>
             <label index="tx_voucher_codes.acquired_groups">acquired group memberships</label>
+            <label index="tx_voucher_codes.tax">tax (paid)</label>
 			<label index="fe_users.tx_voucher_usedcode">used old voucher code</label>
         </languageKey>
         <languageKey index="de" type="array">
@@ -46,6 +47,7 @@
             <label index="tx_voucher_codes.acquired">erworben</label>
             <label index="tx_voucher_codes.acquired_days">erworbene Tage für Benutzer Konto</label>
             <label index="tx_voucher_codes.acquired_groups">erworbene Gruppenzugehörigkeiten</label>
+            <label index="tx_voucher_codes.tax">Steuer (bezahlt)</label>
 			<label index="fe_users.tx_voucher_usedcode">verwendeter alter Gutschrift Code</label>
         </languageKey>
     </data>

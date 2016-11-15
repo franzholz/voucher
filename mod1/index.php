@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2014 Franz Holzinger <franz@ttproducts.de>
+*  (c) 2015 Franz Holzinger <franz@ttproducts.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -24,23 +24,26 @@
 /**
  * Module 'Vouchercode Manager' for the 'voucher' extension.
  *
+ * $Id$
+ *
  * @author Franz Holzinger <franz@ttproducts.de>
  */
 
 
 	// DEFAULT initialization of a module [BEGIN]
 unset($MCONF);
-require ('conf.php');
-require ($BACK_PATH . 'init.php');
-require ($BACK_PATH . 'template.php');
-$LANG->includeLLFile('EXT:' . VOUCHER_EXT . '/mod1/locallang.php');
+require('conf.php');
+// require ($BACK_PATH . 'init.php');
+// require ($BACK_PATH . 'template.php');
 
-require_once (PATH_t3lib . 'class.t3lib_scbase.php');
-require_once (PATH_t3lib . 'class.t3lib_tceforms.php');
+$GLOBALS['LANG']->includeLLFile('EXT:' . VOUCHER_EXT . '/mod1/locallang.php');
+
+// require_once (PATH_t3lib . 'class.t3lib_scbase.php');
+// require_once (PATH_t3lib . 'class.t3lib_tceforms.php');
 
 
 
-$BE_USER->modAccess($MCONF, 1);	// This checks permissions and exits if the users has no permission for entry.
+$GLOBALS['BE_USER']->modAccess($MCONF, 1);	// This checks permissions and exits if the users has no permission for entry.
 	// DEFAULT initialization of a module [END]
 
 class tx_voucher_module1 extends t3lib_SCbase {
@@ -76,12 +79,11 @@ class tx_voucher_module1 extends t3lib_SCbase {
 	 * Adds items to the ->MOD_MENU array. Used for the function menu selector.
 	 */
 	public function menuConfig () {
-		global $LANG;
 		$this->MOD_MENU = Array (
 			'function' => Array (
-				'1' => $LANG->getLL('function1'),
-				'2' => $LANG->getLL('function2'),
-				'3' => $LANG->getLL('function3'),
+				'1' => $GLOBALS['LANG'] ->getLL('function1'),
+				'2' => $GLOBALS['LANG'] ->getLL('function2'),
+				'3' => $GLOBALS['LANG'] ->getLL('function3'),
 			)
 		);
 		parent::menuConfig();
@@ -107,15 +109,17 @@ class tx_voucher_module1 extends t3lib_SCbase {
 	 * Main function of the module. Write the content to $this->content
 	 */
 	public function main () {
-		global $BE_USER, $LANG, $BACK_PATH, $CLIENT, $TYPO3_CONF_VARS;
+		global $BACK_PATH, $CLIENT, $TYPO3_CONF_VARS;
 
 		// Access check!
 		// The page will show only if there is a valid page and if this page may be viewed by the user
 		$this->pageinfo = t3lib_BEfunc::readPageAccess($this->id,$this->perms_clause);
 		$access = is_array($this->pageinfo) ? 1 : 0;
 
-		if (($this->id && $access) || ($BE_USER->user['admin'] && !$this->id)) {
-
+		if (
+			($this->id && $access) ||
+			($GLOBALS['BE_USER']->user['admin'] && !$this->id)
+		) {
 			$this->tceforms = t3lib_div::makeInstance('t3lib_TCEforms');
 			$this->tceforms->initDefaultBEMode();
 			$this->tceforms->backPath = $BACK_PATH;
@@ -157,7 +161,7 @@ class tx_voucher_module1 extends t3lib_SCbase {
 				$this->doc->getHeader(
 					'pages',
 					$this->pageinfo,
-					$this->pageinfo['_thePath']) . '<br>' . $LANG->sL('LLL:EXT:lang/locallang_core.php:labels.path') . ': ' .
+					$this->pageinfo['_thePath']) . '<br>' . $GLOBALS['LANG'] ->sL('LLL:EXT:lang/locallang_core.php:labels.path') . ': ' .
 					t3lib_div::fixed_lgd_cs($this->pageinfo['_thePath'], 50
 				);
 
@@ -167,8 +171,8 @@ class tx_voucher_module1 extends t3lib_SCbase {
 
 			$moduleContent = $this->moduleContent();
 
-			$this->content .= $this->doc->startPage($LANG->getLL('title'));
-			$this->content .= $this->doc->header($LANG->getLL('title'));
+			$this->content .= $this->doc->startPage($GLOBALS['LANG'] ->getLL('title'));
+			$this->content .= $this->doc->header($GLOBALS['LANG'] ->getLL('title'));
 			$this->content .= $this->doc->spacer(5);
 			$this->content .= $this->doc->section(
 				'',
@@ -193,7 +197,7 @@ class tx_voucher_module1 extends t3lib_SCbase {
 			$this->content .= $moduleContent;
 
 			// ShortCut
-			if ($BE_USER->mayMakeShortcut()) {
+			if ($GLOBALS['BE_USER']->mayMakeShortcut()) {
 				$this->content .= $this->doc->spacer(20) . $this->doc->section('', $this->doc->makeShortcutIcon('id', implode(',', array_keys($this->MOD_MENU)), $this->MCONF['name']));
 			}
 			$this->content .= $this->doc->spacer(10);
@@ -204,8 +208,8 @@ class tx_voucher_module1 extends t3lib_SCbase {
 			$this->doc = t3lib_div::makeInstance('mediumDoc');
 			$this->doc->backPath = $BACK_PATH;
 
-			$this->content .= $this->doc->startPage($LANG->getLL('title'));
-			$this->content .= $this->doc->header($LANG->getLL('title'));
+			$this->content .= $this->doc->startPage($GLOBALS['LANG'] ->getLL('title'));
+			$this->content .= $this->doc->header($GLOBALS['LANG'] ->getLL('title'));
 			$this->content .= $this->doc->spacer(5);
 			$this->content .= $this->doc->spacer(10);
 		}
@@ -216,7 +220,7 @@ class tx_voucher_module1 extends t3lib_SCbase {
 	 */
 	public function printContent () {
 
-		$this->content.=$this->doc->endPage();
+		$this->content .= $this->doc->endPage();
 		echo $this->content;
 	}
 
@@ -232,7 +236,6 @@ class tx_voucher_module1 extends t3lib_SCbase {
 	}
 
 	public function modifyRecords () {
-		global $TYPO3_DB;
 
 		$feUser = $_REQUEST['edit'];
 		$feUserArray = array();
@@ -240,12 +243,8 @@ class tx_voucher_module1 extends t3lib_SCbase {
 		// if (!$feUser && isset($_REQUEST['vcsave'])) {
 		foreach ($_REQUEST as $k => $v) {
 			if (
-				(
-					class_exists('t3lib_utility_Math') ?
-					t3lib_utility_Math::canBeInterpretedAsInteger($k) :
-					t3lib_div::testInt($k)
-				) &&
-				$v
+				tx_div2007_core::testInt($k) &&
+				$v != ''
 			) {
 				$feUserArray[] = $k;
 			}
@@ -268,11 +267,11 @@ class tx_voucher_module1 extends t3lib_SCbase {
 							$this->setRow($row);
 							foreach ($feUserArray as $k => $uid) {
 								$row['fe_users_uid'] = $uid;
-								$TYPO3_DB->exec_INSERTquery($table, $row);
+								$GLOBALS['TYPO3_DB']->exec_INSERTquery($table, $row);
 							}
 						} else {
 										// Saving the order record
-							$TYPO3_DB->exec_UPDATEquery(
+							$GLOBALS['TYPO3_DB']->exec_UPDATEquery(
 								$table,
 								'uid=' . intval($id),
 								$row
@@ -285,12 +284,15 @@ class tx_voucher_module1 extends t3lib_SCbase {
 	}
 
 	public function deleteRecords ($uid, $feUser = '0') {
-		global $TYPO3_DB;
-
 		if($uid) {
 			$fieldsArray = array();
 			$fieldsArray['deleted'] = 1;
-			$result2 = $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_voucher_codes', $where, $fieldsArray);
+			$result2 =
+				$GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+					'tx_voucher_codes',
+					$where,
+					$fieldsArray
+				);
 		}
 	}
 
@@ -327,20 +329,18 @@ class tx_voucher_module1 extends t3lib_SCbase {
 	 * Generates the module content
 	 */
 	public function moduleContent () {
-		global $TCA, $LANG, $TYPO3_DB;
-
 		$table = 'tx_voucher_codes';
 		t3lib_div::loadTCA($table);
 
 		$content = '';
 		$function = (string) $this->MOD_SETTINGS['function'];
-		$tableTCA = $TCA[$table]['columns'];
+		$tableTCA = $GLOBALS['TCA'][$table]['columns'];
 		$amountTypeTextArray = array();
 
-		if (isset($TCA[$table]['columns']['amount_type']) && is_array($TCA[$table]['columns']['amount_type'])) {
-			foreach ($TCA[$table]['columns']['amount_type']['config']['items'] as $k => $valArray) {
+		if (isset($GLOBALS['TCA'][$table]['columns']['amount_type']) && is_array($GLOBALS['TCA'][$table]['columns']['amount_type'])) {
+			foreach ($GLOBALS['TCA'][$table]['columns']['amount_type']['config']['items'] as $k => $valArray) {
 				$v = $valArray['0'];
-				$amountTypeTextArray[$k] = $LANG->sL($v);
+				$amountTypeTextArray[$k] = $GLOBALS['LANG'] ->sL($v);
 			}
 		}
 
@@ -351,14 +351,20 @@ class tx_voucher_module1 extends t3lib_SCbase {
 				$error = FALSE;
 				$notEmpty = FALSE;
 
-				if(isset($_REQUEST['uid']) && $_REQUEST['uid'] && isset($_REQUEST['vcsave']) || isset($_REQUEST['edit'])) {
+				if(
+					isset($_REQUEST['uid']) &&
+					$_REQUEST['uid'] &&
+					isset($_REQUEST['vcsave'])
+						||
+					isset($_REQUEST['edit'])
+				) {
 					$content = '<h4>' . strtoupper('Gutscheincode Verwaltung') . '</h4>';
 					$uid = $_REQUEST['uid'];
 					if (!$uid)	{
 						$uid = $_REQUEST['edit'];
 					}
 					$where = 'uid=' . intval($uid);
-					$result1 = $TYPO3_DB->exec_SELECTquery('*', 'fe_users', $where);
+					$result1 = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*', 'fe_users', $where);
 
 					while ($row1 = mysql_fetch_array($result1)) {
 						$content .= '
@@ -369,30 +375,30 @@ class tx_voucher_module1 extends t3lib_SCbase {
 						$time = time();
 						$where = 'fe_users_uid="' . $row1['uid'] . '"';
 						$where .= t3lib_BEfunc::BEenableFields($table, TRUE);
-						$result3 = $TYPO3_DB->exec_SELECTquery('*', $table, $where, '', 'code');
+						$result3 = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*', $table, $where, '', 'code');
 						while ($row3 = mysql_fetch_array($result3)) {
-							$out = '<tr><td colspan="3"><b>'.$row3['uid'].':</b></td></tr>';
+							$out = '<tr><td colspan="3"><b>' . $row3['uid'] . ':</b></td></tr>';
 							$out .= $this->getVoucherFields($table, $row3);
 							$content .= $out;
 						}
-						$TYPO3_DB->sql_free_result($result3);
+						$GLOBALS['TYPO3_DB']->sql_free_result($result3);
 						$content .= '<tr><td colspan="3"></td></tr><tr><td colspan="3"><h4>aktuelle Gutscheincodes</h4></td></tr>';
 
 						$where = 'fe_users_uid="'.$uid.'"';
 						$where .= t3lib_BEfunc::BEenableFields($table, FALSE);
-						$result2 = $TYPO3_DB->exec_SELECTquery('*', $table, $where, '', 'code');
+						$result2 = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*', $table, $where, '', 'code');
 						while ($row2 = mysql_fetch_array($result2)) {
 							$cnt++;
 							$out = '<tr><td colspan="3"><b>' . $row2['uid'] . ':</b></td></tr>';
 							$out .= $this->getVoucherFields($table, $row2);
 							$content .= $out;
 						}
-						$TYPO3_DB->sql_free_result($result2);
+						$GLOBALS['TYPO3_DB']->sql_free_result($result2);
 					}
 					$content .= '<br /><input type="hidden" name="uid" value="' . $_REQUEST['edit'] . '" /><input type="submit" name="vcsave" value="speichern" />&nbsp;<input type="submit" name="back" value="zur&uuml;ck" />';
 				} else {
 					$where = 'fe_users_uid <> 0 AND not deleted';
-					$row = $TYPO3_DB->exec_SELECTgetSingleRow('count(*)', 'tx_voucher_codes', $where);
+					$row = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow('count(*)', 'tx_voucher_codes', $where);
 
 					if ($row) {
 						$notEmpty = $row['count(*)'] > '0';
@@ -423,12 +429,13 @@ class tx_voucher_module1 extends t3lib_SCbase {
 							$codes2 = '';
 							$result1 = mysql_query('Select * from tx_voucher_codes where fe_users_uid = "' . $row2['fe_users_uid'] . '" and deleted = 0');
 							while ($row1 = mysql_fetch_array($result1)) {
-								$codes1 .= $row1['code'] . ', ';
+								$codes1 .= substr($row1['code'], 0, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize']) . ', ';
 							}
 							$result1 = mysql_query('Select * from tx_voucher_codes where fe_users_uid = "' . $row2['fe_users_uid'] . '" and deleted = 1');
 							while ($row1 = mysql_fetch_array($result1)) {
-								$codes2 .= $row1['code'].', ';
+								$codes2 .= substr($row1['code'], 0, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize']) . ', ';
 							}
+
 							if($codes1 == '')
 								$codes1 = '&nbsp;';
 							else
@@ -445,7 +452,7 @@ class tx_voucher_module1 extends t3lib_SCbase {
 							</td>
 							<td style="border-right:1px solid #cccccc;border-bottom:1px solid #cccccc;">
 								<input type="hidden" name="' . $row2['fe_users_uid' ] .'" value="1" />
-								<input style="background-image: url(edit.gif); background-repeat:no-repeat; background-color:transparent; color: #eeeeee; cursor: pointer; border-style: none; border-color:transparent; height:20px; width:20px;" type="submit" name="edit" title="" alt="Codes bearbeiten" value="'.$row2['fe_users_uid'].'" />
+								<input style="background-image: url(edit.gif); background-repeat:no-repeat; background-color:transparent; color: #eeeeee; cursor: pointer; border-style: none; border-color:transparent; height:20px; width:20px;" type="submit" name="edit" title="" alt="Codes bearbeiten" value="' . $row2['fe_users_uid'] . '" />
 							</td></tr>';
 						}
 					} else {
@@ -460,21 +467,25 @@ class tx_voucher_module1 extends t3lib_SCbase {
 
 				//Gutscheincode zuordnen
 
-				if($row['code'] !='' && $row['amount'] !='') {
-					if(isset($row['code'])){
-						$content = '<h4>'.strtoupper('Gutscheincode Verwaltung').'</h4>';
-						$where = 'uid IN ('.implode(',',$this->feUserArray).') AND deleted = 0';
-						$result1 = mysql_query('SELECT * FROM fe_users WHERE '.$where.' ORDER BY uid');
+				if(
+					$row['code'] != '' &&
+					$row['amount'] != ''
+				) {
+					if (isset($row['code'])) {
+						$content = '<h4>' . strtoupper('Gutscheincode Verwaltung') . '</h4>';
+						$where = 'uid IN (' . implode(',', $this->feUserArray) . ') AND deleted = 0';
+						$result1 = mysql_query('SELECT * FROM fe_users WHERE ' . $where . ' ORDER BY uid');
+
 						while ($row1 = mysql_fetch_array($result1)){
 							if($_REQUEST[$row1['uid']] == 1 || $_REQUEST[$row1['uid']] != '') {
 								$content .= '<br />
-								<b>Name</b>: '. $row1['name']. '<br />
-								<b>Adresse</b>: '. $row1['address']. '<br />' .$row1['zip']. ' ' .$row1['city']. '<br />' .$row1['country']. '
-								<br /><b>E-Mail</b>: '. $row1['email']. '<br /><br /><table>';
+								<b>Name</b>: ' . $row1['name']. '<br />
+								<b>Adresse</b>: ' . $row1['address'] . '<br />' . $row1['zip'] . ' ' .$row1['city'] . '<br />' . $row1['country'] . '
+								<br /><b>E-Mail</b>: ' . $row1['email'] . '<br /><br /><table>';
 								$result2 = mysql_query('Select * from tx_voucher_codes where deleted = 0 and fe_users_uid = "' . $row1['uid'] . '"');
 								while ($row2 = mysql_fetch_array($result2)){
 									$content .= '<tr><td>
-									<b>Gutscheincode</b>: ' . $row2['code'] . '</td><td><b>Typ</b>: ' . $amountTypeTextArray[$row2['amount_type']] . '</td><td><b>Betrag</b>: ' . $row2['amount'] . '</td><td><b>G&uuml;tigkeitszeitraum</b>: ' . $this->getOutputDate($row2['starttime']) . ' - ' . $this->getOutputDate($row2['endtime']) . '</td></tr>';
+									<b>Gutscheincode</b>: ' . substr($row2['code'], 0, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize']) . '</td><td><b>Typ</b>: ' . $amountTypeTextArray[$row2['amount_type']] . '</td><td><b>Betrag</b>: ' . $row2['amount'] . '</td><td><b>G&uuml;tigkeitszeitraum</b>: ' . $this->getOutputDate($row2['starttime']) . ' - ' . $this->getOutputDate($row2['endtime']) . '</td></tr>';
 								}
 							}
 							$content .= '</table>';
@@ -529,13 +540,13 @@ class tx_voucher_module1 extends t3lib_SCbase {
 
 			//	$result1 = mysql_query("Select * from tx_voucher_codes where deleted = 0 and fe_users_uid = 0 group by code order by code");
 
-				$rowArray = $TYPO3_DB->exec_SELECTgetRows('*', 'tx_voucher_codes', 'deleted = 0 and fe_users_uid = 0', 'code', 'code');
+				$rowArray = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('*', 'tx_voucher_codes', 'deleted = 0 and fe_users_uid = 0', 'code', 'code');
 
 				$content .= '<table>';
 				foreach ($rowArray as $row1) {
 		//		while ($row1 = mysql_fetch_array($result1)) {
 					$content .= '
-					<tr><td><b>Gutscheincode</b>:</td><td>'.$row1['code'].'</td>
+					<tr><td><b>Gutscheincode</b>:</td><td>' . substr($row1['code'], 0, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize']) . '</td>
 						<td><b>Typ</b>:</td><td>' . $amountTypeTextArray[$row1['amount_type']] . '</td>
 						<td><b>Betrag</b>:</td><td>' . $row1['amount'] . '</td>
 						<td><b>mehrfach</b>:</td><td>' . ($row1['reusable'] ? 'Ja' : 'Nein') . '</td>
@@ -574,5 +585,3 @@ foreach($SOBE->include_once as $INC_FILE) {
 
 $SOBE->main();
 $SOBE->printContent();
-
-?>

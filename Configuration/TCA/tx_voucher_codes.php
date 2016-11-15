@@ -3,12 +3,29 @@ if (!defined ('TYPO3_MODE')) {
 	die ('Access denied.');
 }
 
-$TCA['tx_voucher_codes'] = array (
-	'ctrl' => $TCA['tx_voucher_codes']['ctrl'],
-	'interface' => array (
-		'showRecordFieldList' => 'hidden,starttime,endtime,title,fe_users_uid,reusable,usecounter,amount,code,note,acquired_groups'
+
+$result = array(
+	'ctrl' => array(
+		'title' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes',
+		'label' => 'title',
+		'tstamp' => 'tstamp',
+		'crdate' => 'crdate',
+		'cruser_id' => 'cruser_id',
+		'default_sortby' => 'ORDER BY crdate',
+		'delete' => 'deleted',
+		'enablecolumns' => array (
+			'disabled' => 'hidden',
+			'starttime' => 'starttime',
+			'endtime' => 'endtime',
+			'fe_group' => 'fe_group',
+		),
+		'iconfile' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath(VOUCHER_EXT) . 'icon_tx_voucher_codes.gif',
+		'dividers2tabs' => '1',
+		'searchFields' => 'uid,title,code,note',
 	),
-	'feInterface' => $TCA['tx_voucher_codes']['feInterface'],
+	'interface' => array (
+		'showRecordFieldList' => 'hidden,starttime,endtime,title,fe_users_uid,reusable,usecounter,amount,tax,code,note,acquired_groups'
+	),
 	'columns' => array (
 		'hidden' => array (
 			'exclude' => 1,
@@ -131,12 +148,23 @@ $TCA['tx_voucher_codes'] = array (
 				'eval' => 'required,trim,double2',
 			)
 		),
+		'tax' => array (
+			'exclude' => 1,
+			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.tax',
+			'config' => array (
+				'type' => 'input',
+				'size' => '12',
+				'max' => '19',
+				'eval' => 'trim,double2'
+			)
+		),
 		'code' => array (
 			'exclude' => 1,
 			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.code',
 			'config' => array (
 				'type' => 'input',
-				'size' => '30',
+				'size' => $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize'],
+				'max' => $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize'],
 				'eval' => 'required,trim',
 			)
 		),
@@ -169,7 +197,7 @@ $TCA['tx_voucher_codes'] = array (
 		),
 	),
 	'types' => array (
-		'0' => array('showitem' => 'hidden;;1;;1-1-1, title, fe_users_uid, reusable, usecounter, amount_type, amount, code, note,' .
+		'0' => array('showitem' => 'hidden;;1;;1-1-1, title, fe_users_uid, reusable, usecounter, amount_type, amount, tax, code, note,' .
 			'--div--;LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.acquired, acquired_groups, acquired_days,')
 	),
 	'palettes' => array (
@@ -178,4 +206,7 @@ $TCA['tx_voucher_codes'] = array (
 );
 
 
-?>
+
+
+return $result;
+

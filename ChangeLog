@@ -1,19 +1,23 @@
-(add new changes on top of this file)
-13-08-16 Franz Holzinger <franz@ttproducts.de>
+15-11-16 Franz Holzinger <franz@ttproducts.de>
+
+	* ready for TYPO3 7.x
+	* enhanced API to insert vouchers by Frontend extensions
+
+16-08-14 Franz Holzinger <franz@ttproducts.de>
 
 	* 4 types of the reusable code
 	* improved hooks and API
 	* support for user specific FE group endtimes which is used by the agency extension
 
-13-08-20 Franz Holzinger <franz@ttproducts.de>
+20-08-13 Franz Holzinger <franz@ttproducts.de>
 
 	* new fields usecounter, acquired_days and acquired_groups
 	* support for agency extension
 
-13-05-24 Franz Holzinger <franz@ttproducts.de>
+24-05-13 Franz Holzinger <franz@ttproducts.de>
 
 	* compatible with TYPO3 6.0.5
 
-07-03-12 Martin Siebel  <m@siebelcom.de>
+12-03-07 Martin Siebel  <m@siebelcom.de>
 
 	* Initial release

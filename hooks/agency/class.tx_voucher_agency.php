@@ -27,8 +27,6 @@
  *
  * voucher hook functions
  *
- * $Id$
- *
  * @author	Stanislas Rolland <typo3(arobas)sjbr.ca>
  *
  * @package TYPO3
@@ -252,4 +250,3 @@ if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLA
 	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/voucher/hooks/agency/class.tx_voucher_agency.php']);
 }
 
-?>
