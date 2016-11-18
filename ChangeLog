@@ -1,3 +1,7 @@
+18-11-16 Franz Holzinger <franz@ttproducts.de>
+
+	* bugfix for TYPO3 7.x: replace t3lib_TCEforms by TYPO3\CMS\Backend\Form\FormEngine
+
 15-11-16 Franz Holzinger <franz@ttproducts.de>
 
 	* ready for TYPO3 7.x

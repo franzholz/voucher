@@ -38,9 +38,6 @@ require('conf.php');
 
 $GLOBALS['LANG']->includeLLFile('EXT:' . VOUCHER_EXT . '/mod1/locallang.php');
 
-// require_once (PATH_t3lib . 'class.t3lib_scbase.php');
-// require_once (PATH_t3lib . 'class.t3lib_tceforms.php');
-
 
 
 $GLOBALS['BE_USER']->modAccess($MCONF, 1);	// This checks permissions and exits if the users has no permission for entry.
@@ -120,7 +117,7 @@ class tx_voucher_module1 extends t3lib_SCbase {
 			($this->id && $access) ||
 			($GLOBALS['BE_USER']->user['admin'] && !$this->id)
 		) {
-			$this->tceforms = t3lib_div::makeInstance('t3lib_TCEforms');
+			$this->tceforms = t3lib_div::makeInstance('TYPO3\CMS\Backend\Form\FormEngine');
 			$this->tceforms->initDefaultBEMode();
 			$this->tceforms->backPath = $BACK_PATH;
 
