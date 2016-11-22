@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2016-11-22T19:46:41Z" product-name="voucher">
+		<header/>
+		<body>
+			<trans-unit id="notice" xml:space="preserve">
+				<source>Enter the code</source>
+			</trans-unit>
+			<trans-unit id="evalErrors_voucher_captcha_response" xml:space="preserve">
+				<source>Wrong voucher code &quot;%s&quot;</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

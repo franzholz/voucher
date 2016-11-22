@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2016-11-22T19:58:13Z" product-name="voucher">
+		<header/>
+		<body>
+			<trans-unit id="mlang_tabs_tab" xml:space="preserve">
+				<source>Vouchers</source>
+			</trans-unit>
+			<trans-unit id="mlang_labels_tabdescr" xml:space="preserve">
+				<source>Manage your voucher codes.</source>
+			</trans-unit>
+			<trans-unit id="mlang_labels_tablabel" xml:space="preserve">
+				<source>Manage your voucher codes.</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

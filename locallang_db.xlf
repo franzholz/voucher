@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2016-11-22T19:46:56Z" product-name="voucher">
+		<header/>
+		<body>
+			<trans-unit id="tx_voucher_codes" xml:space="preserve">
+				<source>tx_voucher_codes</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.fe_users_uid" xml:space="preserve">
+				<source>Front End User</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.reusable" xml:space="preserve">
+				<source>reusable</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.reusable.I.0" xml:space="preserve">
+				<source>never</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.reusable.I.1" xml:space="preserve">
+				<source>unendingly by different users</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.reusable.I.2" xml:space="preserve">
+				<source>unendingly by different users or by the same user</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.reusable.I.3" xml:space="preserve">
+				<source>counted times by different users</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.reusable.I.4" xml:space="preserve">
+				<source>counted times by different users or by the same user</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.usecounter" xml:space="preserve">
+				<source>usability count</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.code" xml:space="preserve">
+				<source>voucher code</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.amount" xml:space="preserve">
+				<source>amount</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.amount_type" xml:space="preserve">
+				<source>type of the amount</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.amount_type.I.0" xml:space="preserve">
+				<source>money</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.amount_type.I.1" xml:space="preserve">
+				<source>percentage</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.acquired" xml:space="preserve">
+				<source>acquired</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.acquired_days" xml:space="preserve">
+				<source>acquired days for user account</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.acquired_groups" xml:space="preserve">
+				<source>acquired group memberships</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.tax" xml:space="preserve">
+				<source>tax (paid)</source>
+			</trans-unit>
+			<trans-unit id="fe_users.tx_voucher_usedcode" xml:space="preserve">
+				<source>used old voucher code</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>
