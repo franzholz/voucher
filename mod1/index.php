@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2015 Franz Holzinger <franz@ttproducts.de>
+*  (c) 2016 Franz Holzinger <franz@ttproducts.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -23,8 +23,6 @@
 ***************************************************************/
 /**
  * Module 'Vouchercode Manager' for the 'voucher' extension.
- *
- * $Id$
  *
  * @author Franz Holzinger <franz@ttproducts.de>
  */
@@ -101,7 +99,7 @@ class tx_voucher_module1 extends t3lib_SCbase {
 		return $rc;
 	}
 
-		// If you chose 'web' as main module, you will need to consider the $this->id parameter which will contain the uid-number of the page clicked in the page tree
+	// If you chose 'web' as main module, you will need to consider the $this->id parameter which will contain the uid-number of the page clicked in the page tree
 	/**
 	 * Main function of the module. Write the content to $this->content
 	 */
@@ -110,16 +108,26 @@ class tx_voucher_module1 extends t3lib_SCbase {
 
 		// Access check!
 		// The page will show only if there is a valid page and if this page may be viewed by the user
-		$this->pageinfo = t3lib_BEfunc::readPageAccess($this->id,$this->perms_clause);
+		$this->pageinfo = t3lib_BEfunc::readPageAccess($this->id, $this->perms_clause);
 		$access = is_array($this->pageinfo) ? 1 : 0;
 
 		if (
-			($this->id && $access) ||
-			($GLOBALS['BE_USER']->user['admin'] && !$this->id)
+			(
+				$this->id &&
+				$access
+			) ||
+			(
+				$GLOBALS['BE_USER']->user['admin'] &&
+				!$this->id
+			)
 		) {
+
 			$this->tceforms = t3lib_div::makeInstance('TYPO3\CMS\Backend\Form\FormEngine');
 			$this->tceforms->initDefaultBEMode();
 			$this->tceforms->backPath = $BACK_PATH;
+
+// TYPO3\CMS\Backend\Form\FormEngine;
+// \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Form\ElementConditionMatcher::class);
 
 				// Draw the header.
 			$this->doc = t3lib_div::makeInstance('mediumDoc');
