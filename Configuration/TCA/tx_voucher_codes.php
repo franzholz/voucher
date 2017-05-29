@@ -6,7 +6,7 @@ if (!defined ('TYPO3_MODE')) {
 
 $result = array(
 	'ctrl' => array(
-		'title' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes',
+		'title' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes',
 		'label' => 'title',
 		'tstamp' => 'tstamp',
 		'crdate' => 'crdate',
@@ -57,7 +57,7 @@ $result = array(
 				'checkbox' => '0',
 				'default' => '0',
 				'range' => array (
-					'upper' => mktime(0,0,0,12,31,2150),
+					'upper' => mktime(0, 0, 0, 12, 31, 2150),
 					'lower' => mktime(0, 0, 0, date('m') - 1, date('d'), date('Y'))
 				)
 			)
@@ -88,7 +88,7 @@ $result = array(
 		),
 		'fe_users_uid' => array (
 			'exclude' => 1,
-			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.fe_users_uid',
+			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.fe_users_uid',
 			'config' => array (
 				'type' => 'select',
 				'internal_type' => 'db',
@@ -102,15 +102,15 @@ $result = array(
 		),
 		'reusable' => array (
 			'exclude' => 1,
-			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.reusable',
+			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.reusable',
 			'config' => array (
 				'type' => 'select',
 				'items' => array (
-					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.reusable.I.0', '0'),
-					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.reusable.I.1', '1'),
-					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.reusable.I.2', '2'),
-					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.reusable.I.3', '3'),
-					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.reusable.I.4', '4'),
+					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.reusable.I.0', '0'),
+					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.reusable.I.1', '1'),
+					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.reusable.I.2', '2'),
+					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.reusable.I.3', '3'),
+					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.reusable.I.4', '4'),
 				),
 				'size' => 1,
 				'maxitems' => 1,
@@ -118,7 +118,7 @@ $result = array(
 		),
 		'usecounter' => array (
 			'exclude' => 1,
-			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.usecounter',
+			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.usecounter',
 			'config' => array (
 				'type' => 'input',
 				'default' => '0',
@@ -127,12 +127,12 @@ $result = array(
 		),
 		'amount_type' => array (
 			'exclude' => 1,
-			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.amount_type',
+			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.amount_type',
 			'config' => array (
 				'type' => 'select',
 				'items' => array (
-					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.amount_type.I.0', '0'),
-					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.amount_type.I.1', '1'),
+					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.amount_type.I.0', '0'),
+					array('LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.amount_type.I.1', '1'),
 				),
 				'size' => 1,
 				'maxitems' => 1,
@@ -140,7 +140,7 @@ $result = array(
 		),
 		'amount' => array (
 			'exclude' => 1,
-			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.amount',
+			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.amount',
 			'config' => array (
 				'type' => 'input',
 				'size' => '20',
@@ -150,7 +150,7 @@ $result = array(
 		),
 		'tax' => array (
 			'exclude' => 1,
-			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.tax',
+			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.tax',
 			'config' => array (
 				'type' => 'input',
 				'size' => '12',
@@ -160,7 +160,7 @@ $result = array(
 		),
 		'code' => array (
 			'exclude' => 1,
-			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.code',
+			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.code',
 			'config' => array (
 				'type' => 'input',
 				'size' => $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize'],
@@ -177,7 +177,7 @@ $result = array(
 			)
 		),
 		'acquired_groups' => array(
-			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.acquired_groups',
+			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.acquired_groups',
 			'config' => array(
 				'type' => 'select',
 				'foreign_table' => 'fe_groups',
@@ -188,7 +188,7 @@ $result = array(
 			)
 		),
 		'acquired_days' => array(
-			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.acquired_days',
+			'label' => 'LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.acquired_days',
 			'config' => array (
 				'type' => 'input',
 				'size' => '12',
@@ -197,8 +197,8 @@ $result = array(
 		),
 	),
 	'types' => array (
-		'0' => array('showitem' => 'hidden;;1;;1-1-1, title, fe_users_uid, reusable, usecounter, amount_type, amount, tax, code, note,' .
-			'--div--;LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xml:tx_voucher_codes.acquired, acquired_groups, acquired_days,')
+		'0' => array('showitem' => 'hidden, --palette--;;1, title, fe_users_uid, reusable, usecounter, amount_type, amount, tax, code, note,' .
+			'--div--;LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.acquired, acquired_groups, acquired_days,')
 	),
 	'palettes' => array (
 		'1' => array('showitem' => 'starttime,endtime,fe_group'),
