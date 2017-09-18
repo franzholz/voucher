@@ -1,3 +1,10 @@
+
+18-09-17 Franz Holzinger <franz@ttproducts.de>
+
+    * new feature: Extension Manager configuration to disable the backend module
+    * attention: This version has a not working unfinished backend module
+    * support für TYPO3 8.x
+
 18-11-16 Franz Holzinger <franz@ttproducts.de>
 
 	* bugfix for TYPO3 7.x: replace t3lib_TCEforms by TYPO3\CMS\Backend\Form\FormEngine

@@ -6,14 +6,14 @@
 			<trans-unit id="title" xml:space="preserve">
 				<source>Voucher Manager</source>
 			</trans-unit>
-			<trans-unit id="function1" xml:space="preserve">
-				<source>edit voucher code</source>
+			<trans-unit id="edit_voucher" xml:space="preserve">
+				<source>Edit Voucher Code</source>
 			</trans-unit>
-			<trans-unit id="function2" xml:space="preserve">
-				<source>create voucher code</source>
+			<trans-unit id="create_voucher" xml:space="preserve">
+				<source>Create Voucher Code</source>
 			</trans-unit>
-			<trans-unit id="function3" xml:space="preserve">
-				<source>general voucher codes</source>
+			<trans-unit id="general_voucher" xml:space="preserve">
+				<source>General Voucher Codes</source>
 			</trans-unit>
 		</body>
 	</file>

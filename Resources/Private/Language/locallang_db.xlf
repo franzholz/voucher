@@ -4,7 +4,7 @@
 		<header/>
 		<body>
 			<trans-unit id="tx_voucher_codes" xml:space="preserve">
-				<source>tx_voucher_codes</source>
+				<source>Voucher Codes</source>
 			</trans-unit>
 			<trans-unit id="tx_voucher_codes.fe_users_uid" xml:space="preserve">
 				<source>Front End User</source>

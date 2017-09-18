@@ -1,3 +1,5 @@
   # cat=basic/enable; type=string; label=Code Size: Size of the code field.
 codeSize = 32
+  # cat=basic/enable; type=string; label=Backend Module: Activate the Voucher Code Backend Module in the TYPO3 backend
+module = 1
 
