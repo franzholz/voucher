@@ -1,4 +1,9 @@
 
+14-11-17 Franz Holzinger <franz@ttproducts.de>
+
+    * move mod1/edit.gif -> Resources/Public/Icons/edit.gif
+    * move mod1/garbage.gif -> Resources/Public/Icons/garbage.gif
+
 18-09-17 Franz Holzinger <franz@ttproducts.de>
 
     * new feature: Extension Manager configuration to disable the backend module
