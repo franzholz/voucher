@@ -1,7 +1,16 @@
 This extension has been brought to you by pimp-my-pad.de
 
-TODO: use
-/var/www/html/typo3_src-7.6.14/typo3/sysext/recordlist/Classes/RecordList.php
-as an example
+If you want to use the voucher extension with tt_products, then you must put this into your tt_products setup:
+
+  plugin.tt_products {
+    table.voucher = tx_voucher_codes
+    voucher.active = 1
+  }
+
+
+
+TODO for the backend module: use the FormEngine
+
+// TYPO3 Dokumentatiion: https://docs.typo3.org/typo3cms/CoreApiReference/ApiOverview/FormEngine/Introduction/Index.html
 
 
