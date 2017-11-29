@@ -38,11 +38,22 @@ if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$_EXTKEY]['module'])) {
     $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$_EXTKEY]['module'] = 1;
 }
 
-$classPath = 'EXT:' . $_EXTKEY . '/hooks/agency/class.tx_voucher_agency.php:&tx_voucher_agency';
 
-    // Agency marker hook
-$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['agency']['registrationProcess'][] = $classPath;
-$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['agency']['model'][] = $classPath;
-$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['agency']['registrationProcess_afterSaveCreate'][] = $classPath;
-$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['agency']['confirmRegistrationClass'][] = $classPath;
+if (
+    TYPO3\CMS\Core\Utility\GeneralUtility::inList(
+        $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$_EXTKEY]['hooks'].
+        'agency'
+    )
+) {
+    $hookExtension = 'agency';
+    $classPath = \JambageCom\Voucher\Agency\Agency::class;
+
+        // Agency marker hook
+    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$hookExtension]['registrationProcess'][] = $classPath;
+    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$hookExtension]['model'][] = $classPath;
+    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$hookExtension]['registrationProcess_afterSaveCreate'][] = $classPath;
+    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$hookExtension]['confirmRegistrationClass'][] = $classPath;
+}
+
+
 

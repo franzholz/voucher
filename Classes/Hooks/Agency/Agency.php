@@ -1,4 +1,7 @@
 <?php
+
+namespace JambageCom\Voucher\Controller;
+
 /***************************************************************
 *  Copyright notice
 *
@@ -39,10 +42,10 @@
 /**
  * Hook for agency markers
  */
-class tx_voucher_agency {
+class Agency {
 	public $langObj;
 	public $bHasBeenInitialised = FALSE;
-	public $scriptRelPath = 'hooks/agency/class.tx_voucher_agency.php'; // Path to this script relative to the extension dir.
+	public $scriptRelPath = 'Classes/Hooks/Agency/Agency.php'; // Path to this script relative to the extension dir.
 
 	public function init (
 		$dataObject
@@ -246,7 +249,4 @@ class tx_voucher_agency {
 	}
 }
 
-if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/voucher/hooks/agency/class.tx_voucher_agency.php'])) {
-	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/voucher/hooks/agency/class.tx_voucher_agency.php']);
-}
 

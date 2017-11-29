@@ -2,4 +2,6 @@
 codeSize = 32
   # cat=basic/enable; type=string; label=Backend Module: Activate the Voucher Code Backend Module in the TYPO3 backend
 module = 1
+  # cat=basic/enable; type=string; label=Hooks: Activate the hooks for the following possible extensions: agency
+hooks =
 
