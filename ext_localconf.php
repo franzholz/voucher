@@ -41,7 +41,7 @@ if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$_EXTKEY]['module'])) {
 
 if (
     TYPO3\CMS\Core\Utility\GeneralUtility::inList(
-        $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$_EXTKEY]['hooks'].
+        $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$_EXTKEY]['hooks'],
         'agency'
     )
 ) {
