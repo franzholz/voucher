@@ -198,13 +198,12 @@ $result = array(
     ),
     'types' => array (
         '0' => array('showitem' => 'hidden, --palette--;;1, title, fe_users_uid, reusable, usecounter, amount_type, amount, tax, code, note,' .
-            '--div--;LLL:EXT:' . VOUCHER_EXT . '/locallang_db.xlf:tx_voucher_codes.acquired, acquired_groups, acquired_days,')
+            '--div--;' . VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.acquired, acquired_groups, acquired_days')
     ),
     'palettes' => array (
         '1' => array('showitem' => 'starttime,endtime,fe_group'),
     )
 );
-
 
 
 return $result;

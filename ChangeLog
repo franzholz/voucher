@@ -1,3 +1,6 @@
+14-12-17 Franz Holzinger <franz@ttproducts.de>
+    * bugfix: the tab acquired has been missing
+
 29-11-17 Franz Holzinger <franz@ttproducts.de>
     * move hooks/agency/class.tx_voucher_agency.php -> Classes/Hooks/Agency/Agency.php
     * move hooks/agency/locallang.xlf -> Resources/Private/Language/locallang_agency.xlf
