@@ -22,6 +22,7 @@ $result = array(
         'iconfile' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath(VOUCHER_EXT) . 'icon_tx_voucher_codes.gif',
         'dividers2tabs' => '1',
         'searchFields' => 'uid,title,code,note',
+        'rootLevel' => -1,
     ),
     'interface' => array (
         'showRecordFieldList' => 'hidden,starttime,endtime,title,fe_users_uid,reusable,usecounter,amount,tax,code,note,acquired_groups'

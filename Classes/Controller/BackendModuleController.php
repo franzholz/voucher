@@ -50,6 +50,11 @@ use TYPO3\CMS\Backend\Template\ModuleTemplate;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
+// TODO: ähnlich wie bei
+// TYPO3\CMS\Backend\Controller\EditDocumentController!
+
+// TYPO3 Dokumentatiion: https://docs.typo3.org/typo3cms/CoreApiReference/ApiOverview/FormEngine/Introduction/Index.html
+
 class BackendModuleController extends BaseScriptClass {
 
     /**
@@ -70,7 +75,6 @@ class BackendModuleController extends BaseScriptClass {
     * @var string
     */
     protected $moduleName = 'web_txvoucherM1';
-
 
     /**
     * @var string
@@ -158,6 +162,8 @@ class BackendModuleController extends BaseScriptClass {
         $GLOBALS['SOBE'] = $this;
         $this->main();
 
+        $get = $request->getQueryParams();
+        $post = $request->getParsedBody();
         $this->moduleTemplate->setContent($this->content);
 
         $response->getBody()->write($this->moduleTemplate->renderContent());
@@ -180,7 +186,6 @@ class BackendModuleController extends BaseScriptClass {
         );
 
         // Render content
-
         $this->renderModuleContent();
 
         // Renders the module page
@@ -208,8 +213,6 @@ class BackendModuleController extends BaseScriptClass {
                 !$this->id
             )
         ) {
-            /** @var FormResultCompiler formResultCompiler */
-            $this->formResultCompiler = GeneralUtility::makeInstance(FormResultCompiler::class);
 
             // Start document template object:
 // 			$this->doc = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Template\DocumentTemplate::class);
@@ -261,8 +264,8 @@ class BackendModuleController extends BaseScriptClass {
     * Generates the module content
     */
     public function renderModuleContent () {
-        $table = 'tx_voucher_codes';
         $db = $this->getDatabaseConnection();
+        $model = GeneralUtility::makeInstance('JambageCom\Voucher\Model\VoucherModel');
 
         // Check if the task is restricted to admins only
         if (!$this->checkAccess()) {
@@ -283,7 +286,7 @@ class BackendModuleController extends BaseScriptClass {
 
         $content = '';
         $function = (string) $this->MOD_SETTINGS['function'];
-        $tableTCA = $GLOBALS['TCA'][$table]['columns'];
+        $tableTCA = $GLOBALS['TCA'][$model->getTable()]['columns'];
         $amountTypeTextArray = array();
 
         if (
@@ -300,8 +303,8 @@ class BackendModuleController extends BaseScriptClass {
             case 'edit_voucher':
                 $msg = '';
                 $cnt = 0;
-                $error = FALSE;
-                $notEmpty = FALSE;
+                $error = false;
+                $notEmpty = false;
 
                 if(
                     isset($_REQUEST['uid']) &&
@@ -315,8 +318,8 @@ class BackendModuleController extends BaseScriptClass {
                     if (!$uid) {
                         $uid = $_REQUEST['edit'];
                     }
-                    $where = 'uid=' . intval($uid);
-                    $result1 = $db->exec_SELECTquery('*', 'fe_users', $where);
+                    $where_clause = 'uid=' . intval($uid);
+                    $result1 = $db->exec_SELECTquery('*', 'fe_users', $where_clause);
 
                     while ($row1 = mysql_fetch_array($result1)) {
                         $content .= '
@@ -325,38 +328,48 @@ class BackendModuleController extends BaseScriptClass {
                             <br /><b>E-Mail</b>: ' . $row1['email']. '<br /><br />';
                         $content .= '<table><tr><td colspan="3"><h4>nicht aktive Gutscheincodes</h4></td></tr><tr><td><b>Gutscheincode</b>:</td><td><b>Typ</b>:</td><td><b>Betrag</b>:</td><td><b>G&uuml;ltigkeitszeitraum</b>:</td></tr>';
                         $time = time();
-                        $where = 'fe_users_uid="' . $row1['uid'] . '"';
-                        $where .= t3lib_BEfunc::BEenableFields($table, TRUE);
-                        $result3 = $db->exec_SELECTquery('*', $table, $where, '', 'code');
-                        while ($row3 = mysql_fetch_array($result3)) {
-                            $out = '<tr><td colspan="3"><b>' . $row3['uid'] . ':</b></td></tr>';
-                            $out .= $this->getVoucherFields($table, $row3);
-                            $content .= $out;
+                        $where_clause = 'fe_users_uid="' . $row1['uid'] . '"';
+                        $where_clause .= t3lib_BEfunc::BEenableFields($model->getTable(), true);
+                        $result3 = $db->exec_SELECTquery('*', $model->getTable(), $where_clause, '', 'code');
+                        if (
+                            isset($row3) &&
+                            is_aray($row3)
+                        ) {
+                            while ($row3 = mysql_fetch_array($result3)) {
+                                $out = '<tr><td colspan="3"><b>' . $row3['uid'] . ':</b></td></tr>';
+                                $out .= $this->getVoucherFields($model->getTable(), $row3);
+                                $content .= $out;
+                            }
                         }
                         $db->sql_free_result($result3);
                         $content .= '<tr><td colspan="3"></td></tr><tr><td colspan="3"><h4>aktuelle Gutscheincodes</h4></td></tr>';
 
-                        $where = 'fe_users_uid="' . $uid . '"';
-                        $where .= t3lib_BEfunc::BEenableFields($table, FALSE);
-                        $result2 = $db->exec_SELECTquery('*', $table, $where, '', 'code');
+                        $where_clause = 'fe_users_uid="' . $uid . '"';
+                        $where_clause .= t3lib_BEfunc::BEenableFields($model->getTable(), false);
+                        $result2 = $db->exec_SELECTquery('*', $model->getTable(), $where_clause, '', 'code');
                         while ($row2 = mysql_fetch_array($result2)) {
                             $cnt++;
                             $out = '<tr><td colspan="3"><b>' . $row2['uid'] . ':</b></td></tr>';
-                            $out .= $this->getVoucherFields($table, $row2);
+                            $out .= $this->getVoucherFields($model->getTable(), $row2);
                             $content .= $out;
                         }
                         $db->sql_free_result($result2);
                     }
                     $content .= '<br /><input type="hidden" name="uid" value="' . $_REQUEST['edit'] . '" /><input type="submit" name="vcsave" value="speichern" />&nbsp;<input type="submit" name="back" value="zur&uuml;ck" />';
                 } else {
-                    $where = 'fe_users_uid <> 0 AND not deleted';
-                    $row = $db->exec_SELECTgetSingleRow('count(*)', 'tx_voucher_codes', $where);
+                    $where_clause = 'fe_users_uid <> 0 AND not deleted';
+                    $row =
+                        $db->exec_SELECTgetSingleRow(
+                            'count(*)',
+                            $model->getTable(),
+                            $where_clause
+                        );
 
                     if ($row) {
                         $notEmpty = $row['count(*)'] > '0';
                     }
 
-                    if($notEmpty == TRUE) {
+                    if($notEmpty == true) {
                         $content = '<table border="0" cellspacing="0" cellpadding="3" width="100%">
                             <tr>
                             <td style="border-bottom:1px solid #cccccc;"><b>Name</b></td>
@@ -365,10 +378,27 @@ class BackendModuleController extends BaseScriptClass {
                             <td style="border-bottom:1px solid #cccccc;"><b>eingel&ouml;ste Gutscheine</b></td>
                             <td style="border-bottom:1px solid #cccccc;">&nbsp;</td></tr>';
 
-                        $result2 = mysql_query("Select * from tx_voucher_codes where fe_users_uid <> 0 and not deleted group by fe_users_uid order by fe_users_uid");
-                        while ($row2 = mysql_fetch_array($result2)) {
-                            $result = mysql_query("Select * from fe_users where uid='" . $row2['fe_users_uid'] . "'");
-                            while ($row = mysql_fetch_array($result)) {
+                        $where_clause = 'fe_users_uid > 0 and not deleted';
+                        $row2Array =
+                            $db->exec_SELECTgetRows(
+                                '*',
+                                $model->getTable(),
+                                $where_clause,
+                                'fe_users_uid',
+                                'fe_users_uid'
+                            );
+
+                        if (
+                            isset($row2Array) &&
+                            is_array($row2Array)
+                        ) {
+                            foreach ($row2Array as $row2) {
+                                $row =
+                                    $db->exec_SELECTgetSingleRow(
+                                        '*',
+                                        'fe_users',
+                                        'uid=' . $row2['fe_users_uid']
+                                    );
                                 $content .= '<tr>
                                 <td style="border-left:1px solid #cccccc;border-right:1px solid #cccccc;border-bottom:1px solid #cccccc;">
                                 <b>'. $row['name'] .'</b>
@@ -376,46 +406,77 @@ class BackendModuleController extends BaseScriptClass {
                                 <td style="border-right:1px solid #cccccc;border-bottom:1px solid #cccccc;">
                                 '. $row['email'] .'
                                 </td>';
-                            }
-                            $codes1 ='';
-                            $codes2 = '';
-                            $result1 = mysql_query('Select * from tx_voucher_codes where fe_users_uid = "' . $row2['fe_users_uid'] . '" and deleted = 0');
-                            while ($row1 = mysql_fetch_array($result1)) {
-                                $codes1 .= substr($row1['code'], 0, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize']) . ', ';
-                            }
-                            $result1 = mysql_query('Select * from tx_voucher_codes where fe_users_uid = "' . $row2['fe_users_uid'] . '" and deleted = 1');
-                            while ($row1 = mysql_fetch_array($result1)) {
-                                $codes2 .= substr($row1['code'], 0, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize']) . ', ';
-                            }
 
-                            if($codes1 == '')
-                                $codes1 = '&nbsp;';
-                            else
-                                $codes1 = substr($codes1, 0, strlen($codes1) - 2);
-                            if($codes2 == '')
-                                $codes2 = '&nbsp;';
-                            else
-                                $codes2 = substr($codes2, 0, strlen($codes2) - 2);
-                            $content .= '<td style="border-right:1px solid #cccccc;border-bottom:1px solid #cccccc;">
-                            '. $codes1 .'
-                            </td>
-                            <td style="border-right:1px solid #cccccc;border-bottom:1px solid #cccccc;">
-                            '. $codes2 .'
-                            </td>
-                            <td style="border-right:1px solid #cccccc;border-bottom:1px solid #cccccc;">
-                                <input type="hidden" name="' . $row2['fe_users_uid' ] .'" value="1" />
-                                <input style="background-image: url(edit.gif); background-repeat:no-repeat; background-color:transparent; color: #eeeeee; cursor: pointer; border-style: none; border-color:transparent; height:20px; width:20px;" type="submit" name="edit" title="" alt="Codes bearbeiten" value="' . $row2['fe_users_uid'] . '" />
-                            </td></tr>';
+                                $codes1 = '';
+                                $codes2 = '';
+
+                                $where_clause = 'fe_users_uid = ' . $row2['fe_users_uid'] . ' AND deleted=0';
+                                $row1Array =
+                                    $db->exec_SELECTgetRows(
+                                        '*',
+                                        $model->getTable(),
+                                        $where_clause
+                                    );
+
+                                if (
+                                    isset($row1Array) &&
+                                    is_array($row1Array)
+                                ) {
+                                    foreach ($row1Array as $row1) {
+                                        $codes1 .= substr($row1['code'], 0, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize']) . ', ';
+                                    }
+                                }
+
+                                $where_clause = 'fe_users_uid = ' . $row2['fe_users_uid'] . ' AND deleted=1';
+
+                                $row1Array =
+                                    $db->exec_SELECTgetRows(
+                                        '*',
+                                        $model->getTable(),
+                                        $where_clause
+                                    );
+
+                                if (
+                                    isset($row1Array) &&
+                                    is_array($row1Array)
+                                ) {
+                                    foreach ($row1Array as $row1) {
+                                        $codes2 .= substr($row1['code'], 0, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize']) . ', ';
+                                    }
+                                }
+
+                                if ($codes1 == '') {
+                                    $codes1 = '&nbsp;';
+                                } else {
+                                    $codes1 = substr($codes1, 0, strlen($codes1) - 2);
+                                }
+
+                                if ($codes2 == '') {
+                                    $codes2 = '&nbsp;';
+                                } else {
+                                    $codes2 = substr($codes2, 0, strlen($codes2) - 2);
+                                }
+                                $content .= '<td style="border-right:1px solid #cccccc;border-bottom:1px solid #cccccc;">
+                                '. $codes1 .'
+                                </td>
+                                <td style="border-right:1px solid #cccccc;border-bottom:1px solid #cccccc;">
+                                '. $codes2 .'
+                                </td>
+                                <td style="border-right:1px solid #cccccc;border-bottom:1px solid #cccccc;">
+                                    <input type="hidden" name="' . $row2['fe_users_uid' ] .'" value="1" />
+                                    <input style="background-image: url(edit.gif); background-repeat:no-repeat; background-color:transparent; color: #eeeeee; cursor: pointer; border-style: none; border-color:transparent; height:20px; width:20px;" type="submit" name="edit" title="" alt="Codes bearbeiten" value="' . $row2['fe_users_uid'] . '" />
+                                </td></tr>';
+                            }
                         }
                     } else {
-                        $content .= '<i>Keine Datens&auml;tze vorhanden.</i>';
+                        $content .= '<i>Keine Datensätze vorhanden.</i>';
                     }
                 }
             break;
             case 'create_voucher':
                 $msg = '';
-                $notEmpty = FALSE;
-                $row = $this->getRow();
+                $notEmpty = false;
+                $row = $model->getRow();
 
                 //Gutscheincode zuordnen
 
@@ -425,42 +486,86 @@ class BackendModuleController extends BaseScriptClass {
                 ) {
                     if (isset($row['code'])) {
                         $content = '<h4>' . strtoupper('Gutscheincode Verwaltung') . '</h4>';
-                        $where = 'uid IN (' . implode(',', $this->feUserArray) . ') AND deleted = 0';
-                        $result1 = mysql_query('SELECT * FROM fe_users WHERE ' . $where . ' ORDER BY uid');
+                        $where_clause = 'uid IN (' . implode(',', $this->feUserArray) . ') AND deleted = 0';
+                        $row1Array =
+                            $db->exec_SELECTgetRows(
+                                '*',
+                                $model->getTable(),
+                                $where_clause,
+                                '',
+                                'uid'
+                            );
 
-                        while ($row1 = mysql_fetch_array($result1)){
-                            if($_REQUEST[$row1['uid']] == 1 || $_REQUEST[$row1['uid']] != '') {
-                                $content .= '<br />
-                                <b>Name</b>: ' . $row1['name']. '<br />
-                                <b>Adresse</b>: ' . $row1['address'] . '<br />' . $row1['zip'] . ' ' .$row1['city'] . '<br />' . $row1['country'] . '
-                                <br /><b>E-Mail</b>: ' . $row1['email'] . '<br /><br /><table>';
-                                $result2 = mysql_query('Select * from tx_voucher_codes where deleted = 0 and fe_users_uid = "' . $row1['uid'] . '"');
-                                while ($row2 = mysql_fetch_array($result2)) {
-                                    $content .= '<tr><td>
-                                    <b>Gutscheincode</b>: ' . substr($row2['code'],
-                                    0,
-                                    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize']) . '</td><td><b>Typ</b>: ' .
-                                    $amountTypeTextArray[$row2['amount_type']] .
-                                    '</td><td><b>Betrag</b>: ' . $row2['amount'] .#
-                                    '</td><td><b>G&uuml;tigkeitszeitraum</b>: ' .
-                                    $this->getOutputDate($row2['starttime']) . ' - ' .
-                                    $this->getOutputDate($row2['endtime']) .
-                                    '</td></tr>';
+                        if (isset($row1Array) && is_array($row1Array)) {
+                            foreach ($row1Array as $row1) {
+
+                                if(
+                                    $_REQUEST[$row1['uid']] == 1 ||
+                                    $_REQUEST[$row1['uid']] != ''
+                                ) {
+                                    $content .= '<br />
+                                    <b>Name</b>: ' . $row1['name']. '<br />
+                                    <b>Adresse</b>: ' . $row1['address'] . '<br />' . $row1['zip'] . ' ' .$row1['city'] . '<br />' . $row1['country'] . '
+                                    <br /><b>E-Mail</b>: ' . $row1['email'] . '<br /><br /><table>';
+                                    $where_clause = 'fe_users_uid = ' . $row1['uid'] . ' AND deleted = 0';
+                                    $row2Array =
+                                        $db->exec_SELECTgetRows(
+                                            '*',
+                                            $model->getTable(),
+                                            $where_clause,
+                                            '',
+                                            'uid'
+                                        );
+
+                                    if (
+                                        isset($row2Array) &&
+                                        is_array($row2Array)
+                                    ) {
+                                        foreach ($row2Array as $row2) {
+
+                                            $content .= '<tr><td>
+                                            <b>Gutscheincode</b>: ' . substr($row2['code'],
+                                            0,
+                                            $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize']) . '</td><td><b>Typ</b>: ' .
+                                            $amountTypeTextArray[$row2['amount_type']] .
+                                            '</td><td><b>Betrag</b>: ' . $row2['amount'] .#
+                                            '</td><td><b>G&uuml;tigkeitszeitraum</b>: ' .
+                                            $this->getOutputDate($row2['starttime']) . ' - ' .
+                                            $this->getOutputDate($row2['endtime']) .
+                                            '</td></tr>';
+                                        }
+                                    }
                                 }
+                                $content .= '</table>';
                             }
-                            $content .= '</table>';
-                        } $content .= '<br /><input type="submit" name="back" value="zur&uuml;ck" />';
+                        }
+
+                        $content .= '<br /><input type="submit" name="back" value="zur&uuml;ck" />';
                     }
                 } else {
-                    $result = mysql_query('Select * from fe_users where deleted = 0 order by uid');
-                    $max = mysql_num_rows($result);
+                    $where_clause = 'deleted = 0';
+                    $max =
+                        $db->exec_SELECTcountRows(
+                            '*',
+                            $model->getTable(),
+                            $where_clause,
+                            '',
+                            'uid'
+                        );
                     $notEmpty = ($max > 0);
                     $cnt = 0;
 
+                    if($notEmpty == true) {
+                        $rowArray =
+                            $db->exec_SELECTgetRows(
+                                '*',
+                                $model->getTable(),
+                                $where_clause,
+                                '',
+                                'uid'
+                            );
 
-                    if($notEmpty == TRUE) {
-
-                        $content = $this->newVoucherInput($table, $max);
+                        $content = $this->newVoucherInput($max);
                         $content .= '<table border="0" cellspacing="0" cellpadding="3" width="100%">
                             <tr>
                                 <td style="border-bottom:1px solid #cccccc;"><b>Name</b></td>
@@ -469,13 +574,13 @@ class BackendModuleController extends BaseScriptClass {
                                 <td style="border-bottom:1px solid #cccccc;"><b>UID</b></td>
                                 <td style="border-bottom:1px solid #cccccc;">&nbsp;</td></tr>';
 
-                        while ($row = mysql_fetch_array($result)) {
+                        foreach ($rowArray as $row) {
                             $content .= '<tr>
                             <td style="border-left:1px solid #cccccc;border-right:1px solid #cccccc;border-bottom:1px solid #cccccc;">
-                            <b>'. $row['name'] .'</b>
+                            <b>' . $row['name'] . '</b>
                             </td>
                             <td style="border-right:1px solid #cccccc;border-bottom:1px solid #cccccc;">
-                            '. $row['email'] .'
+                            ' . $row['email'] . '
                             </td>
                             <td style="border-right:1px solid #cccccc;border-bottom:1px solid #cccccc;">
                             '. $row['city'] .'&nbsp;
@@ -487,7 +592,7 @@ class BackendModuleController extends BaseScriptClass {
                             <input type="checkbox" name="' . $row['uid'] . '" id="gc' . $cnt. '" value="1" /></td></tr>';
                             $cnt++;
                         }
-                        $jsOut2 = $this->tceforms->printNeededJSFunctions();
+//                         $jsOut2 = $this->tceforms->printNeededJSFunctions();
                         $content .= $jsOut2;
                     } else {
                         $content .= '<i>Keine Datens&auml;tze vorhanden.</i>';
@@ -496,26 +601,28 @@ class BackendModuleController extends BaseScriptClass {
                 }
             break;
             case 'general_voucher':
-                $content = $this->newVoucherInput($table, 0);
+                $content = $this->newVoucherInput(0);
 
-            //	$result1 = mysql_query("Select * from tx_voucher_codes where deleted = 0 and fe_users_uid = 0 group by code order by code");
-
-                $rowArray = $db->exec_SELECTgetRows('*', 'tx_voucher_codes', 'deleted = 0 and fe_users_uid = 0', 'code', 'code');
+                $rowArray = $db->exec_SELECTgetRows('*', $model->getTable(), 'deleted = 0 AND fe_users_uid = 0', 'code', 'code');
 
                 $content .= '<table>';
-                foreach ($rowArray as $row1) {
-        //		while ($row1 = mysql_fetch_array($result1)) {
-                    $content .= '
-                    <tr><td><b>Gutscheincode</b>:</td><td>' . substr($row1['code'], 0, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize']) . '</td>
-                        <td><b>Typ</b>:</td><td>' . $amountTypeTextArray[$row1['amount_type']] . '</td>
-                        <td><b>Betrag</b>:</td><td>' . $row1['amount'] . '</td>
-                        <td><b>mehrfach</b>:</td><td>' . ($row1['reusable'] ? 'Ja' : 'Nein') . '</td>
-                        <td><b>Startdatum</b>:</td><td>' . $this->getOutputDate($row1['starttime']) . '</td>
-                        <td><b>Ablaufdatum</b>:</td><td>' . $this->getOutputDate($row1['endtime']) . '</td>
-                        <td>
-                        <input style="background-image: url(garbage.gif); background-repeat:no-repeat; background-color:transparent; color: #eeeeee; cursor: pointer; border-style: none; border-color:transparent; height:20px; width:20px;" type="submit" name="delete" title="" alt="l&ouml;schen" value="' . $row1['uid'] . '" />
-                        </td>
-                    </tr>';
+                if (
+                    isset($rowArray) &&
+                    is_array($rowArray)
+                ) {
+                    foreach ($rowArray as $row1) {
+                        $content .= '
+                        <tr><td><b>Gutscheincode</b>:</td><td>' . substr($row1['code'], 0, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize']) . '</td>
+                            <td><b>Typ</b>:</td><td>' . $amountTypeTextArray[$row1['amount_type']] . '</td>
+                            <td><b>Betrag</b>:</td><td>' . $row1['amount'] . '</td>
+                            <td><b>mehrfach</b>:</td><td>' . ($row1['reusable'] ? 'Ja' : 'Nein') . '</td>
+                            <td><b>Startdatum</b>:</td><td>' . $this->getOutputDate($row1['starttime']) . '</td>
+                            <td><b>Ablaufdatum</b>:</td><td>' . $this->getOutputDate($row1['endtime']) . '</td>
+                            <td>
+                            <input style="background-image: url(garbage.gif); background-repeat:no-repeat; background-color:transparent; color: #eeeeee; cursor: pointer; border-style: none; border-color:transparent; height:20px; width:20px;" type="submit" name="delete" title="" alt="l&ouml;schen" value="' . $row1['uid'] . '" />
+                            </td>
+                        </tr>';
+                    }
                 }
                 $content .= '</table>';
             break;
@@ -548,6 +655,51 @@ class BackendModuleController extends BaseScriptClass {
             return false;
         }
         return true;
+    }
+
+   public function getVoucherFields ($row) {
+
+        $model = GeneralUtility::makeInstance('JambageCom\Voucher\Model\VoucherModel');
+        $table = $model->getTable();
+        $out = '';
+
+        $fields = $model->getFields();
+        foreach ($fields as $field) {
+// TODO
+
+        }
+        return $out;
+    }
+
+
+    public function newVoucherInput ($max) {
+        $content = '';
+        $model = GeneralUtility::makeInstance('JambageCom\Voucher\Model\VoucherModel');
+        $table = $model->getTable();
+        $row = $model->getTimeFieldRow();
+
+        $theNewID = uniqid('NEW');
+        $row['uid'] = $theNewID;
+        $voucherOut = $this->getVoucherFields($row);
+
+        $content .= '<table>' . $voucherOut . '</table>';
+        if ($max) {
+            $content .= '<br /><input type="submit" name="vouchercode" value="Gutscheincode zuordnen" />&nbsp;<input type="button" name="selectall" value="alle ausw&auml;hlen" onclick="select_all('.$max.');" /><br /><br />';
+        } else {
+            $content .= '<br /><input type="submit" name="vouchercode" value="Gutscheincode speichern" />&nbsp;<br /><br />';
+        }
+
+        return $content;
+    }
+
+    /**
+     * Returns the database connection
+     *
+     * @return \TYPO3\CMS\Core\Database\DatabaseConnection
+     */
+    protected function getDatabaseConnection()
+    {
+        return $GLOBALS['TYPO3_DB'];
     }
 }
 

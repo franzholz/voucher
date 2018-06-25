@@ -1,6 +1,6 @@
 <?php
 if (!defined ('TYPO3_MODE')) {
-	die ('Access denied.');
+    die ('Access denied.');
 }
 
 
@@ -22,7 +22,7 @@ if (
             'name' => 'web_txvoucherM1',
             'labels' => array(
                 'tabs_images' => array(
-                    'tab' => 'EXT:' . $_EXTKEY . '/Resources/Public/Icons/module-icon.svg',
+                    'tab' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Icons/BackendModuleController/module-icon.svg',
                 ),
                 'll_ref' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/locallang_mod.xlf',
             ),

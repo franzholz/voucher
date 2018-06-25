@@ -73,6 +73,17 @@ class VoucherModel implements \TYPO3\CMS\Core\SingletonInterface {
 
     public $feUserArray = array();
 
+    /**
+    * The name of the database table
+    *
+    * @var string
+    */
+    protected $table = 'tx_voucher_codes';
+
+    /**
+    * @var \TYPO3\CMS\Backend\Form\FormResultCompiler
+    */
+    protected $formResultCompiler;
 
     /**
     * Initializing the module
@@ -81,7 +92,7 @@ class VoucherModel implements \TYPO3\CMS\Core\SingletonInterface {
     */
     public function init ($get, $post)
     {
-        $backendUser = $this->getBackendUserAuthentication();
+        $backendUser = $this->getBackendUser();
         $this->perms_clause = $backendUser->getPagePermsClause(1);
         // Get session data
         $sessionData = $backendUser->getSessionData(__CLASS__);
@@ -94,22 +105,10 @@ class VoucherModel implements \TYPO3\CMS\Core\SingletonInterface {
         // Store session data
         $backendUser->setAndSaveSessionData(RecordList::class, $sessionData);
         $this->getPageRenderer()->addInlineLanguageLabelFile('EXT:voucher/Resources/Private/Language/locallang.xlf');
-    }
 
-    /**
-    * @return BackendUserAuthentication
-    */
-    protected function getBackendUserAuthentication ()
-    {
-        return $GLOBALS['BE_USER'];
-    }
+        $this->formResultCompiler =
+        GeneralUtility::makeInstance('TYPO3\\CMS\\Backend\\Form\\FormResultCompiler');
 
-    /**
-    * @return LanguageService
-    */
-    protected function getLanguageService ()
-    {
-        return $GLOBALS['LANG'];
     }
 
     /**
@@ -124,7 +123,17 @@ class VoucherModel implements \TYPO3\CMS\Core\SingletonInterface {
         return $this->pageRenderer;
     }
 
+    public function getTable () {
+        return $this->table;
+    }
 
+    public function getTimeFieldRow () {
+        return $this->timeFieldRow;
+    }
+
+    public function getFields () {
+        $result = array_keys($this->getTimeFieldRow());
+    }
 
     public function setRow ($row) {
         $this->rowArray[] = $row;
@@ -143,21 +152,11 @@ class VoucherModel implements \TYPO3\CMS\Core\SingletonInterface {
 
 
 
-    public function getVoucherFields ($table, $row, $readonly = FALSE) {
-
-        $this->tceforms->renderReadonly = $readonly;
-        $out = '';
-
-        foreach ($this->timeFieldRow as $field => $value) {
-            $out .= $this->tceforms->getSingleField($table, $field, $row);
-        }
-        return $out;
-    }
-
     public function modifyRecords () {
 
         $feUser = $_REQUEST['edit'];
         $feUserArray = array();
+        $dbConnection = $this->getDatabaseConnection();
 
         // if (!$feUser && isset($_REQUEST['vcsave'])) {
         foreach ($_REQUEST as $k => $v) {
@@ -186,11 +185,11 @@ class VoucherModel implements \TYPO3\CMS\Core\SingletonInterface {
                             $this->setRow($row);
                             foreach ($feUserArray as $k => $uid) {
                                 $row['fe_users_uid'] = $uid;
-                                $GLOBALS['TYPO3_DB']->exec_INSERTquery($table, $row);
+                                $dbConnection->exec_INSERTquery($table, $row);
                             }
                         } else {
                                         // Saving the order record
-                            $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+                            $dbConnection->exec_UPDATEquery(
                                 $table,
                                 'uid=' . intval($id),
                                 $row
@@ -204,11 +203,12 @@ class VoucherModel implements \TYPO3\CMS\Core\SingletonInterface {
 
     public function deleteRecords ($uid) {
         if($uid) {
+            $dbConnection = $this->getDatabaseConnection();
             $fieldsArray = array();
             $fieldsArray['deleted'] = 1;
             $where = 'uid=' . intval($uid);
             $result2 =
-                $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+                $dbConnection->exec_UPDATEquery(
                     'tx_voucher_codes',
                     $where,
                     $fieldsArray
@@ -216,24 +216,6 @@ class VoucherModel implements \TYPO3\CMS\Core\SingletonInterface {
         }
     }
 
-    public function newVoucherInput ($table, $max) {
-        $content = '';
-
-        $row = $this->timeFieldRow;
-
-        $theNewID = uniqid('NEW');
-        $row['uid'] = $theNewID;
-        $voucherOut = $this->getVoucherFields($table, $row, FALSE);
-
-        $content .= '<table>' . $voucherOut . '</table>';
-        if ($max) {
-            $content .= '<br /><input type="submit" name="vouchercode" value="Gutscheincode zuordnen" />&nbsp;<input type="button" name="selectall" value="alle ausw&auml;hlen" onclick="select_all('.$max.');" /><br /><br />';
-        } else {
-            $content .= '<br /><input type="submit" name="vouchercode" value="Gutscheincode speichern" />&nbsp;<br /><br />';
-        }
-
-        return $content;
-    }
 
     public function getOutputDate ($date) {
         $rc = '';
@@ -245,6 +227,33 @@ class VoucherModel implements \TYPO3\CMS\Core\SingletonInterface {
         return $rc;
     }
 
+    /**
+     * @return \TYPO3\CMS\Core\Authentication\BackendUserAuthentication
+     */
+    protected function getBackendUser()
+    {
+        return $GLOBALS['BE_USER'];
+    }
+
+    /**
+     * Returns LanguageService
+     *
+     * @return \TYPO3\CMS\Lang\LanguageService
+     */
+    protected function getLanguageService()
+    {
+        return $GLOBALS['LANG'];
+    }
+
+    /**
+     * Returns the database connection
+     *
+     * @return \TYPO3\CMS\Core\Database\DatabaseConnection
+     */
+    protected function getDatabaseConnection()
+    {
+        return $GLOBALS['TYPO3_DB'];
+    }
 }
 
 

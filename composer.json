@@ -1,0 +1,60 @@
+{
+  "name": "jambagecom/voucher",
+  "type": "typo3-cms-extension",
+  "description": "Backend extension to manage voucher codes for FE users. This works together with tt_products and agency.",
+  "keywords": [
+    "TYPO3",
+    "extension",
+    "voucher"
+  ],
+  "support": {
+    "issues": "http://jambage.com/kontakt/forum.html"
+  },
+  "homepage": "https://jambage.com",
+  "authors": [
+    {
+      "name": "Franz Holzinger",
+      "role": "Developer",
+      "homepage": "http://ttproducts.de"
+    }
+  ],
+  "license": [
+    "GPL-2.0+"
+  ],
+  "require": {
+    "typo3/cms-core": ">=7.6.0,<8.99.99",
+    "typo3-ter/div2007": ">=1.10.1"
+  },
+  "suggest": {
+    "typo3-ter/tt_products": ">=2.8.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "JambageCom\\Voucher\\": "Classes"
+    },
+    "classmap": [
+      "api",
+      "Classes",
+      "lib"
+    ]
+  },
+  "replace": {
+    "voucher": "self.version",
+    "typo3-ter/voucher": "self.version"
+  },
+  "config": {
+    "vendor-dir": ".Build/vendor",
+    "bin-dir": ".Build/bin",
+    "preferred-install": {
+      "typo3/cms": "source",
+      "typo3/cms-core": "source",
+      "*": "dist"
+    }
+  },
+  "extra": {
+    "typo3/cms": {
+      "cms-package-dir": "{$vendor-dir}/typo3/cms",
+      "web-dir": ".Build/Web"
+    }
+  }
+}
