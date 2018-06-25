@@ -465,6 +465,7 @@ class Api {
         $classTr = '<div class="tr">';
         $classTable = '<div class="table">';
         $divEnd = '</div>';
+        $xhtmlFix = \JambageCom\Div2007\Utility\HtmlUtility::determineXhtmlFix();
 
         if ($showGroupTimeRange) {
             $groupCodeRowArray = self::getGroupRowsByUser($feUserRow['uid'], true);
@@ -518,7 +519,7 @@ class Api {
             $headerHtml .= $classTd . $headerText . $divEnd;
         }
         $outArray[] = $classTr . $headerHtml . $divEnd;
-        $outArray[] = implode('', $groupOutArray) . '<br />';
+        $outArray[] = implode('', $groupOutArray) . '<br' . $xhtmlFix . '>';
         $result = $classTable . implode('', $outArray) . $divEnd;
         return $result;
     }
