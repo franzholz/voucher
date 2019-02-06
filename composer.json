@@ -8,14 +8,14 @@
     "voucher"
   ],
   "support": {
-    "issues": "http://jambage.com/kontakt/forum.html"
+    "issues": "https://jambage.com/kontakt/forum.html"
   },
   "homepage": "https://jambage.com",
   "authors": [
     {
       "name": "Franz Holzinger",
       "role": "Developer",
-      "homepage": "http://ttproducts.de"
+      "homepage": "https://ttproducts.de"
     }
   ],
   "license": [
@@ -23,10 +23,11 @@
   ],
   "require": {
     "typo3/cms-core": ">=7.6.0,<8.99.99",
-    "typo3-ter/div2007": ">=1.10.5"
+    "jambagecom/div2007": ">=1.10.15"
   },
   "suggest": {
-    "typo3-ter/tt-products": ">=2.8.1"
+    "jambagecom/agency": ">=0.8.3",
+    "jambagecom/tt-products": ">=2.8.1"
   },
   "autoload": {
     "psr-4": {
@@ -34,27 +35,16 @@
     },
     "classmap": [
       "api",
-      "Classes",
       "lib"
     ]
   },
   "replace": {
     "voucher": "self.version",
-    "typo3-ter/voucher": "self.version"
-  },
-  "config": {
-    "vendor-dir": ".Build/vendor",
-    "bin-dir": ".Build/bin",
-    "preferred-install": {
-      "typo3/cms": "source",
-      "typo3/cms-core": "source",
-      "*": "dist"
-    }
+    "jambagecom/voucher": "self.version"
   },
   "extra": {
     "typo3/cms": {
-      "cms-package-dir": "{$vendor-dir}/typo3/cms",
-      "web-dir": ".Build/Web"
+      "extension-key": "voucher"
     }
   }
 }

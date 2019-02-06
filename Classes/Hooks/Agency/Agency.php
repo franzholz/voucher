@@ -5,7 +5,7 @@ namespace JambageCom\Voucher\Controller;
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2014 Franz Holzinger <franz@ttproducts.de>
+*  (c) 2019 Franz Holzinger (franz@ttproducts.de)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -30,7 +30,7 @@ namespace JambageCom\Voucher\Controller;
  *
  * voucher hook functions
  *
- * @author	Stanislas Rolland <typo3(arobas)sjbr.ca>
+ * @author	Franz Holzinger <franz@ttproducts.de>
  *
  * @package TYPO3
  * @subpackage agency
@@ -38,215 +38,229 @@ namespace JambageCom\Voucher\Controller;
  *
  */
 
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+
+use JambageCom\Agency\Request\Parameters;
+
+use JambageCom\Voucher\Api\Api;
 
 /**
  * Hook for agency markers
  */
 class Agency {
-	public $langObj;
-	public $bHasBeenInitialised = FALSE;
-	public $scriptRelPath = 'Classes/Hooks/Agency/Agency.php'; // Path to this script relative to the extension dir.
+    public $languageObj;
+    public $bHasBeenInitialised = false;
+    public $scriptRelPath = 'Classes/Hooks/Agency/Agency.php'; // Path to this script relative to the extension dir.
 
-	public function init (
-		$dataObject
-	) {
-		$this->langObj = t3lib_div::getUserObj('&tx_agency_lang');
-		$cObj = t3lib_div::getUserObj('&tx_div2007_cobj');
-		$conf = array();
+    public function init (
+        $dataObject
+    )
+    {
+        $this->languageObj = GeneralUtility::makeInstance(\JambageCom\Agency\Api\Localization::class);
+        $cObj = GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer::class);
+        $conf = $GLOBALS['TSFE']->tmpl->setup['plugin.'][AGENCY_EXT . '.'];
 
-		$this->langObj->init(
-			$this,
-			$cObj,
-			$conf,
-			$this->scriptRelPath,
-			'voucher' // Todo: replace voucher by setup value
-		);
-		tx_div2007_alpha5::loadLL_fh002($this->langObj, 'EXT:' . VOUCHER_EXT . '/hooks/agency/locallang.xml');
+        $this->languageObj->init(
+            'voucher',  // Todo: replace voucher by setup value
+            $conf['_LOCAL_LANG.'],
+            'EXT:' . VOUCHER_EXT . DIV2007_LANGUAGE_SUBPATH
+        );
 
-		$this->bHasBeenInitialised = TRUE;
-	}
+        $this->languageObj->loadLocalLang(
+            'locallang_agency.xlf'
+            false
+        );
 
-	public function needsInit () {
-		return !$this->bHasBeenInitialised;
-	}
+        $this->bHasBeenInitialised = true;
+    }
 
-	/**
-	 * Sets the value of captcha markers
-	 */
-	public function addGlobalMarkers (
-		&$markerArray,
-		$controlData,
-		$confObj,
-		$markerObject
-	) {
-		$cmdKey = $controlData->getCmdKey();
-		$conf = $confObj->getConf();
+    public function needsInit ()
+    {
+        return !$this->bHasBeenInitialised;
+    }
 
-		$voucherMarkerArray = array();
+    /**
+    * Sets the value of captcha markers
+    */
+    public function addGlobalMarkers (
+        &$markerArray,
+        $controlData,
+        $confObj,
+        $markerObject
+    )
+    {
+        $cmdKey = $controlData->getCmdKey();
+        $conf = $confObj->getConf();
 
-		if ($conf[$cmdKey . '.']['evalValues.']['captcha_response'] == 'voucher') {
-			$voucherMarkerArray['###VOUCHER_IMAGE###'] = '<img src="' . t3lib_extMgm::siteRelPath('voucher') . 'icon_tx_voucher_codes.gif" alt="" />';
-			$labelname = 'notice';
-			$voucherMarkerArray['###VOUCHER_NOTICE###'] = $this->langObj->getLL($labelname);
-		} else {
-			$voucherMarkerArray['###VOUCHER_IMAGE###'] = '';
-		}
+        $voucherMarkerArray = array();
 
-		$markerArray = array_merge($markerArray, $voucherMarkerArray);
-	}
+        if ($conf[$cmdKey . '.']['evalValues.']['captcha_response'] == 'voucher') {
+            $voucherMarkerArray['###VOUCHER_IMAGE###'] = '<img src="' . \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::siteRelPath('voucher') . 'icon_tx_voucher_codes.gif" alt="" />';
+            $labelname = 'notice';
+            $voucherMarkerArray['###VOUCHER_NOTICE###'] = $this->languageObj->getLabel($labelname);
+        } else {
+            $voucherMarkerArray['###VOUCHER_IMAGE###'] = '';
+        }
 
-	/**
-	 * Evaluates the voucher code
-	 */
-	public function evalValues (
-		$staticInfoObj,
-		$theTable,
-		$dataArray,
-		$origArray,
-		$markContentArray,
-		$cmdKey,
-		$requiredArray,
-		$checkFieldArray,
-		$theField,
-		$cmdParts,
-		$bInternal,
-		&$test,
-		$dataObject
-	) {
-		$errorField = '';
+        $markerArray = array_merge($markerArray, $voucherMarkerArray);
+    }
 
-		if (
-			$theField == 'captcha_response' &&
-			trim($cmdParts[0]) == 'voucher' && // Todo: do not use voucher but check the $conf setup for voucher
-			isset($dataArray[$theField])
-		) {
-			$rowArray = tx_voucher_api::getRowFromCode($dataArray[$theField]);
-			if (
-				!$rowArray
-			) {
-				$errorField = $theField;
-			}
-		}
+    /**
+    * Evaluates the voucher code
+    */
+    public function evalValues (
+        $staticInfoObj,
+        $theTable,
+        $dataArray,
+        $origArray,
+        $markContentArray,
+        $cmdKey,
+        $requiredArray,
+        $checkFieldArray,
+        $theField,
+        $cmdParts,
+        $bInternal,
+        &$test,
+        $dataObject
+    )
+    {
+        $errorField = '';
 
-		return $errorField;
-	}
+        if (
+            $theField == 'captcha_response' &&
+            trim($cmdParts[0]) == 'voucher' && // Todo: do not use voucher but check the $conf setup for voucher
+            isset($dataArray[$theField])
+        ) {
+            $rowArray = Api::getRowFromCode($dataArray[$theField]);
+            if (
+                !$rowArray
+            ) {
+                $errorField = $theField;
+            }
+        }
 
-	public function getFailureText (
-		$failureText,
-		$dataArray,
-		$theField,
-		$theRule,
-		$label,
-		$orderNo = '',
-		$param = '',
-		$bInternal = FALSE
-	) {
-		$errorText = '';
+        return $errorField;
+    }
 
-		if ($theRule) {
-			$labelname = 'evalErrors_' . $theRule . '_' . $theField;
-			$errorText = $this->langObj->getLL($labelname);
-			if ($errorText) {
-				$errorText = sprintf($errorText, $dataArray[$theField]);
-			}
-		}
+    public function getFailureText (
+        $failureText,
+        $dataArray,
+        $theField,
+        $theRule,
+        $label,
+        $orderNo = '',
+        $param = '',
+        $bInternal = false
+    )
+    {
+        $errorText = '';
 
-		return $errorText;
-	}
+        if ($theRule) {
+            $labelname = 'evalErrors_' . $theRule . '_' . $theField;
+            $errorText = $this->languageObj->getLabel($labelname);
+            if ($errorText) {
+                $errorText = sprintf($errorText, $dataArray[$theField]);
+            }
+        }
 
-	public function registrationProcess_afterSaveCreate (
-		tx_agency_controldata $controlDataObj,
-		$theTable,
-		array $dataArray,
-		array $origArray,
-		$token,
-		array &$newRow,
-		$cmd,
-		$cmdKey,
-		$pid,
-		$fieldList,
-		tx_agency_data $pObj
-	) {
-		$result = TRUE;
-		$newFieldList = '';
-		$conf = $controlDataObj->getConf();
+        return $errorText;
+    }
 
-		if (
-			is_int($dataArray['uid']) &&
-			$dataArray['captcha_response'] != '' &&
-			$newRow['tx_voucher_usedcode'] == ''
-		) {
-			$code = $dataArray['captcha_response'];
-			$codeRow = tx_voucher_api::getRowFromCode($code);
+    public function registrationProcess_afterSaveCreate (
+        Parameters $parameters,
+        $theTable,
+        array $dataArray,
+        array $origArray,
+        $token,
+        array &$newRow,
+        $cmd,
+        $cmdKey,
+        $pid,
+        $extraList,
+        Data $pObj
+    )
+    {
+        $result = true;
+        $newFieldList = '';
+        $conf = $parameters->getConf();
 
-			if (is_array($codeRow)) {
-				tx_voucher_api::reduceCountOrDisable($codeRow);
-			}
+        if (
+            is_int($dataArray['uid']) &&
+            $dataArray['captcha_response'] != '' &&
+            $newRow['tx_voucher_usedcode'] == ''
+        ) {
+            $code = $dataArray['captcha_response'];
+            $codeRow = Api::getRowFromCode($code);
 
-			if (
-				!$conf['enableEmailConfirmation']
-			) {
-				$errorCode = '';
-				$result =
-					tx_voucher_api::redeemVoucher(
-						$code,
-						'fe_users',
-						$newRow,
-						$newFieldList,
-						$errorCode
-					);
-			}
+            if (is_array($codeRow)) {
+                Api::reduceCountOrDisable($codeRow);
+            }
 
-			if ($result) {
-				$row = array();
-				$row['tx_voucher_usedcode'] = $code;
-				if ($newFieldList != '') {
-					$newFieldArray = explode(',', $newFieldList);
-					foreach ($newFieldArray as $newField) {
-						if ($newField != '') {
-							$row[$newField] = $newRow[$newField];
-						}
-					}
-				}
-				$where_clause = 'uid = ' . intval($dataArray['uid']);
-				$GLOBALS['TYPO3_DB']->exec_UPDATEquery(
-					$theTable,
-					$where_clause,
-					$row
-				);
-			}
-		}
+            if (
+                !$conf['enableEmailConfirmation']
+            ) {
+                $errorCode = '';
+                $result =
+                    Api::redeemVoucher(
+                        $code,
+                        'fe_users',
+                        $newRow,
+                        $newFieldList,
+                        $errorCode
+                    );
+            }
 
-		return $result;
-	}
+            if ($result) {
+                $row = array();
+                $row['tx_voucher_usedcode'] = $code;
+                if ($newFieldList != '') {
+                    $newFieldArray = explode(',', $newFieldList);
+                    foreach ($newFieldArray as $newField) {
+                        if ($newField != '') {
+                            $row[$newField] = $newRow[$newField];
+                        }
+                    }
+                }
+                $where_clause = 'uid = ' . intval($dataArray['uid']);
+                $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+                    $theTable,
+                    $where_clause,
+                    $row
+                );
+            }
+        }
 
-	public function confirmRegistrationClass_preProcess (
-		tx_agency_controldata $controlDataObj,
-		$theTable,
-		&$row,
-		&$newFieldList,
-		$invokingObj,
-		$errorCode
-	) {
-		$result = TRUE;
-		$conf = $controlDataObj->getConf();
+        return $result;
+    }
 
-		if (
-			!$errorCode &&
-			!$conf['enableAdminReview']
-		) {
-			$result =
-				tx_voucher_api::redeemVoucher(
-					$row['tx_voucher_usedcode'],
-					$theTable,
-					$row,
-					$newFieldList,
-					$errorCode
-				);
-		}
+    public function confirmRegistrationClass_preProcess (
+        Parameters $parameters,
+        $theTable,
+        array $row,
+        $newFieldList,
+        SetFixed $pObj,
+        &$errorCode
+    )
+    {
+        $result = true;
+        $conf = $parameters->getConf();
 
-		return $result;
-	}
+        if (
+            !$errorCode &&
+            !$conf['enableAdminReview']
+        ) {
+            $result =
+                Api::redeemVoucher(
+                    $row['tx_voucher_usedcode'],
+                    $theTable,
+                    $row,
+                    $newFieldList,
+                    $errorCode
+                );
+        }
+
+        return $result;
+    }
 }
 
 

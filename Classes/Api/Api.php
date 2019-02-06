@@ -5,7 +5,7 @@ namespace JambageCom\Voucher\Api;
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2018 Franz Holzinger (franz@ttproducts.de)
+*  (c) 2019 Franz Holzinger (franz@ttproducts.de)
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -119,7 +119,7 @@ class Api {
         $result = false;
 
         if ($theTable == 'fe_users' && $code != '') {
-            $codeRow = self::getRowFromCode($code, false);
+            $codeRow = static::getRowFromCode($code, false);
             if (
                 is_array($codeRow) &&
                 $codeRow['uid'] &&
@@ -153,7 +153,7 @@ class Api {
                 $newFieldArray = array_unique($newFieldArray);
                 $newFieldList = implode(',', $newFieldArray);
 
-                $result = self::addLimitedGroups(
+                $result = static::addLimitedGroups(
                     $codeRow,
                     $time,
                     $acquiredSeconds,
@@ -194,7 +194,7 @@ class Api {
     }
 
     /* $errorCode: 1 ... code has already been used.
-    *             2 ... database write error
+    *              2 ... database write error
     */
     static public function addLimitedGroups (
         $codeRow,
@@ -244,7 +244,7 @@ class Api {
                     $codeRow['reusable'] != '4'
                 ) {
                     $codeValid =
-                        self::checkCodeFormerlyUsed(
+                        static::checkCodeFormerlyUsed(
                             $code,
                             $rowArray,
                             $errorCode
@@ -426,7 +426,7 @@ class Api {
         $bEnable = true
     )
     {
-        $rowArray = self::getGroupRowsByUser($theUser, $bEnable);
+        $rowArray = static::getGroupRowsByUser($theUser, $bEnable);
 
         $result = false;
 
@@ -468,7 +468,7 @@ class Api {
         $xhtmlFix = \JambageCom\Div2007\Utility\HtmlUtility::determineXhtmlFix();
 
         if ($showGroupTimeRange) {
-            $groupCodeRowArray = self::getGroupRowsByUser($feUserRow['uid'], true);
+            $groupCodeRowArray = static::getGroupRowsByUser($feUserRow['uid'], true);
         }
 
         if ($where_clause == '') {
@@ -588,7 +588,7 @@ class Api {
         }
         $maximum = strlen($codeAlphabet) - 1;
         for ($i = 0; $i < $length; $i++) {
-            $token .= $codeAlphabet[self::crypto_rand_secure(0, $maximum)];
+            $token .= $codeAlphabet[static::crypto_rand_secure(0, $maximum)];
         }
         return $token;
     }
@@ -621,7 +621,7 @@ class Api {
         $newRow['tstamp'] = $time;
         $newRow['crdate'] = $time;
         $newRow['title'] = $title . '-' . date('Y-m-d H:i:s', $time);
-        $newRow['code'] = self::getToken($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize']);
+        $newRow['code'] = static::getToken($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize']);
 
         foreach ($row as $field => $value) {
             if (
