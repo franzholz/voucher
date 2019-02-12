@@ -6,7 +6,7 @@ defined('TYPO3_MODE') || die('Access denied.');
 
 if (
     TYPO3_MODE == 'BE' &&
-    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$_EXTKEY]['module']
+    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['module']
 ) {
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addModule(
         'web',
@@ -19,9 +19,9 @@ if (
             'name' => 'web_txvoucherM1',
             'labels' => array(
                 'tabs_images' => array(
-                    'tab' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Icons/BackendModuleController/module-icon.svg',
+                    'tab' => 'EXT:' . VOUCHER_EXT . '/Resources/Public/Images/Icons/BackendModuleController/module-icon.svg',
                 ),
-                'll_ref' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/locallang_mod.xlf',
+                'll_ref' => 'LLL:EXT:' . VOUCHER_EXT . '/Resources/Private/Language/locallang_mod.xlf',
             ),
         )
     );
