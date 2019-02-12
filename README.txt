@@ -1,4 +1,4 @@
-This extension has been brought to you by pimp-my-pad.de
+This extension has been originally brought to you by pimp-my-pad.de
 
 If you want to use the voucher extension with tt_products, then you must put this into your tt_products setup:
 
