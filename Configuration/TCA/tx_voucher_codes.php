@@ -22,7 +22,7 @@ $result = array(
         'rootLevel' => -1,
     ),
     'interface' => array (
-        'showRecordFieldList' => 'hidden,starttime,endtime,title,fe_users_uid,reusable,usecounter,amount,tax,code,note,acquired_groups'
+        'showRecordFieldList' => 'hidden,starttime,endtime,title,code,fe_users_uid,reusable,usecounter,amount,tax,note,acquired_groups'
     ),
     'columns' => array (
         'hidden' => array (
@@ -156,16 +156,6 @@ $result = array(
                 'eval' => 'trim,double2'
             )
         ),
-        'code' => array (
-            'exclude' => 1,
-            'label' => VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.code',
-            'config' => array (
-                'type' => 'input',
-                'size' => $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize'],
-                'max' => $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize'],
-                'eval' => 'required,trim',
-            )
-        ),
         'note' => array (
             'label' => DIV2007_LANGUAGE_LGL . 'note',
             'config' => array (
@@ -195,11 +185,12 @@ $result = array(
         ),
     ),
     'types' => array (
-        '0' => array('showitem' => 'hidden, --palette--;;1, title, fe_users_uid, reusable, usecounter, amount_type, amount, tax, code, note,' .
+        '0' => array('showitem' => 'title, --palette--;;1, fe_users_uid, hidden, --palette--;;2, ' .
             '--div--;' . VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.acquired, acquired_groups, acquired_days')
     ),
     'palettes' => array (
-        '1' => array('showitem' => 'starttime,endtime,fe_group'),
+        '1' => array('showitem' => 'reusable, usecounter, amount_type, amount, tax, note'),
+        '2' => array('showitem' => 'starttime,endtime,fe_group'),
     )
 );
 
