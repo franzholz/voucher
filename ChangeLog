@@ -1,6 +1,7 @@
 13-02-19 Franz Holzinger <franz@ttproducts.de>
     * The code TCA must be moved into the Overrides folder because the size of the code is variable.
     * Restructuring of the TCA palettes
+    * bugfix: \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes does not allow a comma after the last parameter 'after:www'
 
 06-02-19 Franz Holzinger <franz@ttproducts.de>
     * support for agency 0.8.4: The previous versions of agency are not supported any more by the namespace hook.

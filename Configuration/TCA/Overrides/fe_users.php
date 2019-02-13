@@ -22,6 +22,6 @@ $temporaryColumns =
     $table,
     'tx_voucher_usedcode;;;;1-1-1',
     '',
-    'after:www,'
+    'after:www'
 );
 
