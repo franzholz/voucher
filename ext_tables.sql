@@ -17,6 +17,7 @@ CREATE TABLE tx_voucher_codes (
 	fe_users_uid int(11) DEFAULT '0' NOT NULL,
 	reusable int(11) DEFAULT '0' NOT NULL,
 	usecounter int(11) DEFAULT '1' NOT NULL,
+	combinable int(11) DEFAULT '0' NOT NULL,
 	amount_type int(11) DEFAULT '0' NOT NULL,
 	amount decimal(19,2) DEFAULT '0.00' NOT NULL,
 	tax decimal(19,2) DEFAULT '0.00' NOT NULL,

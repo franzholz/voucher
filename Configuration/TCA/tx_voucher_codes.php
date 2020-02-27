@@ -22,7 +22,7 @@ $result = array(
         'rootLevel' => -1,
     ),
     'interface' => array (
-        'showRecordFieldList' => 'hidden,starttime,endtime,title,code,fe_users_uid,reusable,usecounter,amount,tax,note,acquired_groups'
+        'showRecordFieldList' => 'hidden,starttime,endtime,title,code,fe_users_uid,reusable,usecounter,combinable, amount,tax,note,acquired_groups'
     ),
     'columns' => array (
         'hidden' => array (
@@ -123,6 +123,19 @@ $result = array(
                 'eval' => 'int',
             )
         ),
+        'combinable' => array (
+            'exclude' => 1,
+            'label' => VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.combinable',
+            'config' => array (
+                'type' => 'select',
+                'items' => array (
+                    array(VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.combinable.I.0', '0'),
+                    array(VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.combinable.I.1', '1'),
+                ),
+                'size' => 1,
+                'maxitems' => 1,
+            )
+        ),
         'amount_type' => array (
             'exclude' => 1,
             'label' => VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.amount_type',
@@ -189,7 +202,7 @@ $result = array(
             '--div--;' . VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.acquired, acquired_groups, acquired_days')
     ),
     'palettes' => array (
-        '1' => array('showitem' => 'reusable, usecounter, amount_type, amount, tax, note'),
+        '1' => array('showitem' => 'reusable, usecounter, combinable, amount_type, amount, tax, note'),
         '2' => array('showitem' => 'starttime,endtime,fe_group'),
     )
 );

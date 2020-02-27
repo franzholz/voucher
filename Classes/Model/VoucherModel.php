@@ -62,15 +62,18 @@ class VoucherModel implements \TYPO3\CMS\Core\SingletonInterface {
             'starttime' => '0',
             'endtime' => '0',
             'title' => '',
+            'code' => '',
             'reusable' => '0',
+            'usecounter' => '0',
+            'combinable' => '0',
             'amount_type' => '0',
             'amount' => '0',
-            'code' => '',
-            'note' => ''
+            'tax' => '0',
+            'note' => '',
+            'acquired_days' => '0',
+            'acquired_groups' => ''
         );
-
     public $rowArray = array();
-
     public $feUserArray = array();
 
     /**

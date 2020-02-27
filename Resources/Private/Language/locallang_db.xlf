@@ -6,6 +6,9 @@
 			<trans-unit id="tx_voucher_codes" xml:space="preserve">
 				<source>Voucher Codes</source>
 			</trans-unit>
+			<trans-unit id="tx_voucher_codes.code" xml:space="preserve">
+				<source>voucher code</source>
+			</trans-unit>
 			<trans-unit id="tx_voucher_codes.fe_users_uid" xml:space="preserve">
 				<source>Front End User</source>
 			</trans-unit>
@@ -30,8 +33,14 @@
 			<trans-unit id="tx_voucher_codes.usecounter" xml:space="preserve">
 				<source>usability count</source>
 			</trans-unit>
-			<trans-unit id="tx_voucher_codes.code" xml:space="preserve">
-				<source>voucher code</source>
+			<trans-unit id="tx_voucher_codes.combinable" xml:space="preserve">
+				<source>combinable</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.combinable.I.0" xml:space="preserve">
+				<source>always</source>
+			</trans-unit>
+			<trans-unit id="tx_voucher_codes.combinable.I.1" xml:space="preserve">
+				<source>never</source>
 			</trans-unit>
 			<trans-unit id="tx_voucher_codes.amount" xml:space="preserve">
 				<source>amount</source>

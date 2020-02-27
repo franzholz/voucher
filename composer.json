@@ -19,11 +19,12 @@
     }
   ],
   "license": [
-    "GPL-2.0+"
+    "GPL-2.0-or-later"
   ],
   "require": {
-    "typo3/cms-core": ">=7.6.0,<8.99.99",
-    "jambagecom/div2007": ">=1.10.15"
+        "php": "^5.5",
+        "typo3/cms-core": ">=7.6.0,<=9.5.99",
+        "jambagecom/div2007": ">=1.10.15"
   },
   "suggest": {
     "jambagecom/agency": ">=0.8.3",
@@ -39,8 +40,8 @@
     ]
   },
   "replace": {
-    "voucher": "self.version",
-    "jambagecom/voucher": "self.version"
+    "jambagecom/voucher": "self.version",
+    "typo3-ter/voucher": "self.version"
   },
   "extra": {
     "typo3/cms": {

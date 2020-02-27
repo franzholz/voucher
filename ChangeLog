@@ -1,3 +1,9 @@
+2020-02-27 Franz Holzinger <franz@ttproducts.de>
+    * set the backend modul off by default. It is not yet implemented for TYPO3 8 and later.
+    * new feature: 'combinable' gives the possibility to have a voucher code which cannot be activated if other voucher codes have already been activated.
+
+####################
+
 13-02-19 Franz Holzinger <franz@ttproducts.de>
     * The code TCA must be moved into the Overrides folder because the size of the code is variable.
     * Restructuring of the TCA palettes
