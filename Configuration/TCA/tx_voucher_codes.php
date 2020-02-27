@@ -16,7 +16,7 @@ $result = array(
             'endtime' => 'endtime',
             'fe_group' => 'fe_group',
         ),
-        'iconfile' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath(VOUCHER_EXT) . 'icon_tx_voucher_codes.gif',
+        'iconfile' => 'EXT:' . VOUCHER_EXT . '/icon_tx_voucher_codes.gif',
         'dividers2tabs' => '1',
         'searchFields' => 'uid,title,code,note',
         'rootLevel' => -1,
@@ -65,13 +65,19 @@ $result = array(
             'label' => DIV2007_LANGUAGE_LGL . 'fe_group',
             'config' => array (
                 'type' => 'select',
+                'renderType' => 'selectMultipleSideBySide',
+                'size' => 7,
+                'maxitems' => 20,
                 'items' => array (
                     array('', 0),
                     array(DIV2007_LANGUAGE_LGL . 'hide_at_login', -1),
                     array(DIV2007_LANGUAGE_LGL . 'any_login', -2),
                     array(DIV2007_LANGUAGE_LGL . 'usergroups', '--div--')
                 ),
-                'foreign_table' => 'fe_groups'
+                'exclusiveKeys' => '-1,-2',
+                'foreign_table' => 'fe_groups',
+                'foreign_table_where' => 'ORDER BY fe_groups.title',
+                'enableMultiSelectFilterTextfield' => true
             )
         ),
         'title' => array (
@@ -82,6 +88,7 @@ $result = array(
                 'size' => '40',
                 'max' => '256',
                 'eval' => 'required,trim',
+                'default' => ''
             )
         ),
         'fe_users_uid' => array (
@@ -89,13 +96,13 @@ $result = array(
             'label' => VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.fe_users_uid',
             'config' => array (
                 'type' => 'select',
-                'internal_type' => 'db',
-                'allowed' => 'tt_products',
+                'renderType' => 'selectSingleBox',
                 'foreign_table' => 'fe_users',
                 'foreign_table_where' => ' ORDER BY fe_users.name',
-                'size' => 50,
+                'size' => 15,
                 'minitems' => 0,
                 'maxitems' => 12,
+                'default' => 0
             )
         ),
         'reusable' => array (
@@ -103,6 +110,7 @@ $result = array(
             'label' => VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.reusable',
             'config' => array (
                 'type' => 'select',
+                'renderType' => 'selectSingle',
                 'items' => array (
                     array(VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.reusable.I.0', '0'),
                     array(VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.reusable.I.1', '1'),
@@ -112,6 +120,7 @@ $result = array(
                 ),
                 'size' => 1,
                 'maxitems' => 1,
+                'default' => 0
             )
         ),
         'usecounter' => array (
@@ -119,8 +128,8 @@ $result = array(
             'label' => VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.usecounter',
             'config' => array (
                 'type' => 'input',
-                'default' => '0',
                 'eval' => 'int',
+                'default' => 0,
             )
         ),
         'combinable' => array (
@@ -128,12 +137,14 @@ $result = array(
             'label' => VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.combinable',
             'config' => array (
                 'type' => 'select',
+                'renderType' => 'selectSingle',
                 'items' => array (
                     array(VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.combinable.I.0', '0'),
                     array(VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.combinable.I.1', '1'),
                 ),
                 'size' => 1,
                 'maxitems' => 1,
+                'default' => 0,
             )
         ),
         'amount_type' => array (
@@ -141,12 +152,14 @@ $result = array(
             'label' => VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.amount_type',
             'config' => array (
                 'type' => 'select',
+                'renderType' => 'selectSingle',
                 'items' => array (
                     array(VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.amount_type.I.0', '0'),
                     array(VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.amount_type.I.1', '1'),
                 ),
                 'size' => 1,
                 'maxitems' => 1,
+                'default' => 0,
             )
         ),
         'amount' => array (
@@ -157,6 +170,7 @@ $result = array(
                 'size' => '20',
                 'max' => '20',
                 'eval' => 'required,trim,double2',
+                'default' => 0,
             )
         ),
         'tax' => array (
@@ -166,7 +180,8 @@ $result = array(
                 'type' => 'input',
                 'size' => '12',
                 'max' => '19',
-                'eval' => 'trim,double2'
+                'eval' => 'trim,double2',
+                'default' => 0
             )
         ),
         'note' => array (
@@ -174,18 +189,22 @@ $result = array(
             'config' => array (
                 'type' => 'text',
                 'cols' => '48',
-                'rows' => '5'
+                'rows' => '5',
+                'default' => ''
             )
         ),
         'acquired_groups' => array(
             'label' => VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:tx_voucher_codes.acquired_groups',
             'config' => array(
                 'type' => 'select',
-                'foreign_table' => 'fe_groups',
-                'foreign_table_where' => 'ORDER BY fe_groups.title',
+                'renderType' => 'selectMultipleSideBySide',
                 'size' => '6',
                 'minitems' => '0',
-                'maxitems' => '50'
+                'maxitems' => '50',
+                'exclusiveKeys' => '-1,-2',
+                'foreign_table' => 'fe_groups',
+                'foreign_table_where' => 'ORDER BY fe_groups.title',
+                'enableMultiSelectFilterTextfield' => true
             )
         ),
         'acquired_days' => array(
@@ -194,6 +213,7 @@ $result = array(
                 'type' => 'input',
                 'size' => '12',
                 'eval' => 'int',
+                'default' => 0
             )
         ),
     ),
