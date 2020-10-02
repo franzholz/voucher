@@ -23,12 +23,12 @@
   ],
   "require": {
         "php": "^5.5",
-        "typo3/cms-core": ">=7.6.0,<=9.5.99",
+        "typo3/cms-core": ">=7.6.0,<=10.4.99",
         "jambagecom/div2007": ">=1.10.15"
   },
   "suggest": {
     "jambagecom/agency": ">=0.8.3",
-    "jambagecom/tt-products": ">=2.8.1"
+    "jambagecom/tt-products": ">=2.9.10"
   },
   "autoload": {
     "psr-4": {

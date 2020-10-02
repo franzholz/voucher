@@ -33,30 +33,27 @@ $result = [
             ]
         ],
         'starttime' => [
-            'exclude' => 1,
+            'exclude' => true,
             'label' => DIV2007_LANGUAGE_LGL . 'starttime',
             'config' => [
                 'type' => 'input',
-                'size' => '8',
-                'max' => '20',
-                'eval' => 'date',
-                'checkbox' => '0',
-                'default' => '0'
+                'renderType' => 'inputDateTime',
+                'dbType' => 'datetime',
+                'eval' => 'datetime,int',
+                'default' => 0,
             ]
         ],
         'endtime' => [
-            'exclude' => 1,
+            'exclude' => true,
             'label' => DIV2007_LANGUAGE_LGL . 'endtime',
             'config' => [
                 'type' => 'input',
-                'size' => '8',
-                'max' => '20',
-                'eval' => 'date',
-                'checkbox' => '0',
-                'default' => '0',
+                'renderType' => 'inputDateTime',
+                'dbType' => 'datetime',
+                'eval' => 'datetime,int',
+                'default' => 0,
                 'range' => [
-                    'upper' => mktime(0, 0, 0, 12, 31, 2150),
-                    'lower' => mktime(0, 0, 0, date('m') - 1, date('d'), date('Y'))
+                    'upper' => mktime(0, 0, 0, 1, 1, 2038)
                 ]
             ]
         ],

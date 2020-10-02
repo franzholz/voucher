@@ -1,3 +1,7 @@
+2020-10-02 Franz Holzinger <franz@ttproducts.de>
+    * support für TYPO3 10.x
+    * use renderType inputDateTime
+
 2020-02-27 Franz Holzinger <franz@ttproducts.de>
     * support für TYPO3 9.x
     * modify the TCA to support any SQL mode and add the renderType
