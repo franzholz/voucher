@@ -38,7 +38,6 @@ $result = [
             'config' => [
                 'type' => 'input',
                 'renderType' => 'inputDateTime',
-                'dbType' => 'datetime',
                 'eval' => 'datetime,int',
                 'default' => 0,
             ]
@@ -49,7 +48,6 @@ $result = [
             'config' => [
                 'type' => 'input',
                 'renderType' => 'inputDateTime',
-                'dbType' => 'datetime',
                 'eval' => 'datetime,int',
                 'default' => 0,
                 'range' => [
