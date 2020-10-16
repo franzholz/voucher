@@ -40,9 +40,9 @@
 
 class tx_voucher_api {
 
-	static public function getRowFromCode ($theCode, $bEnable = TRUE) {
+	static public function getRowFromCode ($theCode, $bEnable = true) {
 
-		$result = FALSE;
+		$result = false;
 
 		if ($theCode != '') {
 			$voucherTable = 'tx_voucher_codes';
@@ -107,10 +107,10 @@ class tx_voucher_api {
 		&$newFieldList,
 		&$errorCode
 	) {
-		$result = FALSE;
+		$result = false;
 
 		if ($theTable == 'fe_users' && $code != '') {
-			$codeRow = self::getRowFromCode($code, FALSE);
+			$codeRow = self::getRowFromCode($code, false);
 			if (
 				is_array($codeRow) &&
 				$codeRow['uid'] &&
@@ -164,7 +164,7 @@ class tx_voucher_api {
 		$rowArray,
 		&$errorCode
 	) {
-		$result = TRUE;
+		$result = true;
 
 		if (
 			is_array($rowArray) &&
@@ -173,7 +173,7 @@ class tx_voucher_api {
 			foreach ($rowArray as $row) {
 				$codeArray = explode(',', $row['codes']);
 				if (in_array($code, $codeArray)) {
-					$result = FALSE;
+					$result = false;
 					$errorCode = 1;
 					break;
 				}
@@ -196,7 +196,7 @@ class tx_voucher_api {
 		$pid = 0
 	) {
 		$code = $codeRow['code'];
-		$result = TRUE;
+		$result = true;
 		$errorCode = 0;
 
 		if (is_array($groupArray)) {
@@ -226,7 +226,7 @@ class tx_voucher_api {
 				is_array($rowArray) &&
 				count($rowArray)
 			) {
-				$codeValid = TRUE;
+				$codeValid = true;
 
 				if (
 					$codeRow['reusable'] != '2' &&
@@ -241,7 +241,7 @@ class tx_voucher_api {
 				}
 
 				if (!$codeValid) {
-					$result = FALSE;
+					$result = false;
 				} else {
 					$foundGroupArray = [];
 
@@ -290,7 +290,7 @@ class tx_voucher_api {
 						$newId = $GLOBALS['TYPO3_DB']->sql_insert_id();
 					}
 					if (!$newId) {
-						$result = FALSE;
+						$result = false;
 						break;
 					}
 				}
@@ -301,7 +301,7 @@ class tx_voucher_api {
 	}
 
 	static public function removeOutdatedGroups () {
-		$result = FALSE;
+		$result = false;
 		$table = 'fe_users';
 
 		$time = time();
@@ -381,14 +381,14 @@ class tx_voucher_api {
 				}
 			}
 		}
-		$result = TRUE;
+		$result = true;
 
 		return $result;
 	}
 
-	static public function getGroupRowsByUser ($theUser, $bEnable = TRUE) {
+	static public function getGroupRowsByUser ($theUser, $bEnable = true) {
 
-		$result = FALSE;
+		$result = false;
 
 		if ($theUser != '') {
 			$sysTable = 'sys_agency_fe_users_limit_fe_groups';
@@ -410,14 +410,14 @@ class tx_voucher_api {
 
 	static public function getCodesByUser (
 		$theUser,
-		$bEnable = TRUE
+		$bEnable = true
 	) {
 		$rowArray = self::getGroupRowsByUser($theUser, $bEnable);
 
-		$result = FALSE;
+		$result = false;
 
 		if (
-			$rowArray != FALSE &&
+			$rowArray != false &&
 			is_array($rowArray)
 		) {
 			$codesArray = [];
@@ -438,21 +438,21 @@ class tx_voucher_api {
 	static public function groupOut (
 		$cObj,
 		$feUserRow,
-		$showGroupTimeRange = FALSE,
+		$showGroupTimeRange = false,
 		$where_clause = '',
-		$groupEnable = TRUE,
+		$groupEnable = true,
 		$expirationText = '',
 		array $headerTextArray = [] // required indexes: group, expiration, voucher
 	) {
 		$groupTable = 'fe_groups';
-		$groupCodeRowArray = FALSE;
+		$groupCodeRowArray = false;
 		$classTd = '<div class="td">';
 		$classTr = '<div class="tr">';
 		$classTable = '<div class="table">';
 		$divEnd = '</div>';
 
 		if ($showGroupTimeRange) {
-			$groupCodeRowArray = self::getGroupRowsByUser($feUserRow['uid'], TRUE);
+			$groupCodeRowArray = self::getGroupRowsByUser($feUserRow['uid'], true);
 		}
 
 		if ($where_clause == '') {
@@ -479,7 +479,7 @@ class tx_voucher_api {
 					$groupCodeRowArray &&
 					is_array($groupCodeRowArray)
 				) {
-					$foundGroup = FALSE;
+					$foundGroup = false;
 					foreach($groupCodeRowArray as $groupCodeRow) {
 						if ($groupCodeRow['fe_groups_uid'] == $groupRow['uid']) {
 							$enddate = '';
@@ -488,7 +488,7 @@ class tx_voucher_api {
 							}
 							$outDetails = $classTd . $expirationText . ' ' . $enddate . $divEnd;
 							$outDetails .= $classTd . $groupCodeRow['codes'] . $divEnd;
-							$foundGroup = TRUE;
+							$foundGroup = true;
 							break;
 						}
 					}
@@ -509,11 +509,11 @@ class tx_voucher_api {
 	}
 
 
-	/* $developer: TRUE during development. This is needed to deactivate the  browser´s cache for Javascript */
+	/* $developer: true during development. This is needed to deactivate the  browser´s cache for Javascript */
 	static public function getVoucherAjaxUrl (
 		$extKey,
 		$cObj,
-		$developer = FALSE
+		$developer = false
 	) {
 		$queryString = [
 			'L' => t3lib_div::_GP('L'),
@@ -556,8 +556,8 @@ class tx_voucher_api {
 
 	static public function getToken (
 		$length,
-		$onlyUppercase = TRUE,
-		$specialCharacters = FALSE
+		$onlyUppercase = true,
+		$specialCharacters = false
 	) {
 		$token = '';
 		$codeAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -577,10 +577,10 @@ class tx_voucher_api {
 
 	static public function insertVoucher (
 		&$row,
-		$onlyUppercase = TRUE,
-		$specialCharacters = FALSE
+		$onlyUppercase = true,
+		$specialCharacters = false
 	) {
-		$result = TRUE;
+		$result = true;
 
 		$table = 'tx_voucher_codes';
 		if (!is_array($row)) {
@@ -620,7 +620,7 @@ class tx_voucher_api {
 			$newRow['uid'] = $newId;
 			$row = $newRow;
 		} else {
-			$result = FALSE;
+			$result = false;
 		}
 
 		return $result;
