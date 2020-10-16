@@ -9,39 +9,50 @@ call_user_func(function () {
         define('VOUCHER_EXT_LANGUAGE_PATH', 'LLL:EXT:' . VOUCHER_EXT . '/Resources/Private/Language/');
     }
 
-    $_EXTCONF = unserialize($_EXTCONF);    // unserializing the configuration so we can use it here:
+
+    $extensionConfiguration = [];
+    $originalConfiguration = [];
+
+    if (
+        defined('TYPO3_version') &&
+        version_compare(TYPO3_version, '9.0.0', '>=')
+    ) {
+        $extensionConfiguration = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(
+            \TYPO3\CMS\Core\Configuration\ExtensionConfiguration::class
+        )->get(VOUCHER_EXT);
+    } else { // before TYPO3 9
+        $extensionConfiguration = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf'][VOUCHER_EXT]);
+    }
 
     if (
         isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]) &&
         is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT])
     ) {
-        $tmpArray = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT];
-    } else if (isset($tmpArray)) {
-        unset($tmpArray);
+        $originalConfiguration = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT];
     }
 
-    if (isset($_EXTCONF) && is_array($_EXTCONF)) {
-        $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT] = $_EXTCONF;
-        if (isset($tmpArray) && is_array($tmpArray)) {
-            $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT] =
-                array_merge($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT], $tmpArray);
-        }
-    } else if (!isset($tmpArray)) {
+    if (
+        isset($extensionConfiguration) && is_array($extensionConfiguration
+    )) {
+        $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT] =
+            array_merge($extensionConfiguration, $originalConfiguration);
+    } else if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT])) {
         $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT] = [];
     }
 
-    if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize'])) {
-        $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize'] = 32;
+    $extensionConfiguration = &$GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT];
+
+    if (!isset($extensionConfiguration['codeSize'])) {
+        $extensionConfiguration['codeSize'] = 32;
     }
 
-    if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['module'])) {
-        $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['module'] = 1;
+    if (!isset($extensionConfiguration['module'])) {
+        $extensionConfiguration['module'] = 1;
     }
-
 
     if (
         TYPO3\CMS\Core\Utility\GeneralUtility::inList(
-            $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['hooks'],
+            $extensionConfiguration['hooks'],
             'agency'
         )
     ) {
@@ -54,8 +65,5 @@ call_user_func(function () {
         $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$hookExtension]['registrationProcess_afterSaveCreate'][] = $classPath;
         $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$hookExtension]['confirmRegistrationClass'][] = $classPath;
     }
-
 });
-
-
 
