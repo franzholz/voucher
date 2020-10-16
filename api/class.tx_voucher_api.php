@@ -79,7 +79,7 @@ class tx_voucher_api {
 			$codeRow['reusable'] != '2'
 		) {
 			$voucherTable = 'tx_voucher_codes';
-			$row = array();
+			$row = [];
 			$where_clause = 'uid=' . intval($codeRow['uid']);
 
 			if (
@@ -116,7 +116,7 @@ class tx_voucher_api {
 				$codeRow['uid'] &&
 				$codeRow['acquired_groups'] != ''
 			) {
-				$newFieldArray = array();
+				$newFieldArray = [];
 				if ($newFieldList != '') {
 					$newFieldArray = explode(',', $newFieldList);
 				}
@@ -200,7 +200,7 @@ class tx_voucher_api {
 		$errorCode = 0;
 
 		if (is_array($groupArray)) {
-			$addGroupArray = array();
+			$addGroupArray = [];
 
 			$fieldArray = array (
 				'pid' => intval($pid),
@@ -243,7 +243,7 @@ class tx_voucher_api {
 				if (!$codeValid) {
 					$result = FALSE;
 				} else {
-					$foundGroupArray = array();
+					$foundGroupArray = [];
 
 					foreach ($rowArray as $row) {
 						if (in_array($row['fe_groups_uid'], $groupArray)) {
@@ -360,7 +360,7 @@ class tx_voucher_api {
 					$outdatedGroupIds = array_keys($groupOutdatedArray);
 					$currentGroupIds = explode(',', $row['usergroup']);
 					$remainingGroupIds = array_diff($currentGroupIds, $outdatedGroupIds);
-					$fieldArray = array();
+					$fieldArray = [];
 					$fieldArray['usergroup'] = implode(',', $remainingGroupIds);
 
 					$GLOBALS['TYPO3_DB']->exec_UPDATEquery(
@@ -369,7 +369,7 @@ class tx_voucher_api {
 						$fieldArray
 					);
 
-					$fieldArray = array();
+					$fieldArray = [];
 					$fieldArray['deleted'] = 1;
 					$fieldArray['tstamp'] = $time;
 
@@ -420,7 +420,7 @@ class tx_voucher_api {
 			$rowArray != FALSE &&
 			is_array($rowArray)
 		) {
-			$codesArray = array();
+			$codesArray = [];
 			if (is_array($rowArray)) {
 				foreach ($rowArray as $row) {
 					$codesArray[] = $row['codes'];
@@ -442,7 +442,7 @@ class tx_voucher_api {
 		$where_clause = '',
 		$groupEnable = TRUE,
 		$expirationText = '',
-		array $headerTextArray = array() // required indexes: group, expiration, voucher
+		array $headerTextArray = [] // required indexes: group, expiration, voucher
 	) {
 		$groupTable = 'fe_groups';
 		$groupCodeRowArray = FALSE;
@@ -467,8 +467,8 @@ class tx_voucher_api {
 		$groupRowArray = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('*', $groupTable, $where_clause);
 
 		$result = '';
-		$outArray = array();
-		$groupOutArray = array();
+		$outArray = [];
+		$groupOutArray = [];
 
 		if (is_array($groupRowArray)) {
 			foreach ($groupRowArray as $groupRow) {
@@ -515,17 +515,17 @@ class tx_voucher_api {
 		$cObj,
 		$developer = FALSE
 	) {
-		$queryString = array(
+		$queryString = [
 			'L' => t3lib_div::_GP('L'),
 			'no_cache' => 1,
 			'eID' => $extKey,
-		);
+		];
 
 		if ($developer) {
 			$queryString['time'] = time();
 		}
 
-		$linkConf = array('useCacheHash' => 0);
+		$linkConf = ['useCacheHash' => 0];
 
 		$target = '';
 		$reqURI = tx_div2007_alpha5::getTypoLink_URL_fh003(
@@ -584,9 +584,9 @@ class tx_voucher_api {
 
 		$table = 'tx_voucher_codes';
 		if (!is_array($row)) {
-			$row = array();
+			$row = [];
 		}
-		$newRow = array();
+		$newRow = [];
 		$time = time();
 		if (!empty($GLOBALS['TYPO3_CONF_VARS']['SYS']['serverTimeZone'])) {
 			$time += ($GLOBALS['TYPO3_CONF_VARS']['SYS']['serverTimeZone'] * 3600);

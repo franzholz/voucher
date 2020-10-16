@@ -58,7 +58,7 @@ use TYPO3\CMS\Lang\LanguageService;
 class VoucherModel implements \TYPO3\CMS\Core\SingletonInterface {
 
     public $timeFieldRow =
-        array(
+        [
             'starttime' => '0',
             'endtime' => '0',
             'title' => '',
@@ -72,9 +72,9 @@ class VoucherModel implements \TYPO3\CMS\Core\SingletonInterface {
             'note' => '',
             'acquired_days' => '0',
             'acquired_groups' => ''
-        );
-    public $rowArray = array();
-    public $feUserArray = array();
+        ];
+    public $rowArray = [];
+    public $feUserArray = [];
 
     /**
     * The name of the database table
@@ -158,7 +158,7 @@ class VoucherModel implements \TYPO3\CMS\Core\SingletonInterface {
     public function modifyRecords () {
 
         $feUser = $_REQUEST['edit'];
-        $feUserArray = array();
+        $feUserArray = [];
         $dbConnection = $this->getDatabaseConnection();
 
         // if (!$feUser && isset($_REQUEST['vcsave'])) {
@@ -172,7 +172,7 @@ class VoucherModel implements \TYPO3\CMS\Core\SingletonInterface {
         }
 
         if (!count($feUserArray)) {
-            $feUserArray = array('0');
+            $feUserArray = ['0'];
         }
 
         $this->feUserArray = $feUserArray;
@@ -207,7 +207,7 @@ class VoucherModel implements \TYPO3\CMS\Core\SingletonInterface {
     public function deleteRecords ($uid) {
         if($uid) {
             $dbConnection = $this->getDatabaseConnection();
-            $fieldsArray = array();
+            $fieldsArray = [];
             $fieldsArray['deleted'] = 1;
             $where = 'uid=' . intval($uid);
             $result2 =

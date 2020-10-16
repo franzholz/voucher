@@ -287,7 +287,7 @@ class BackendModuleController extends BaseScriptClass {
         $content = '';
         $function = (string) $this->MOD_SETTINGS['function'];
         $tableTCA = $GLOBALS['TCA'][$model->getTable()]['columns'];
-        $amountTypeTextArray = array();
+        $amountTypeTextArray = [];
 
         if (
             isset($tableTCA['amount_type']) &&

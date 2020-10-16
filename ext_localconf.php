@@ -25,7 +25,7 @@ if (isset($_EXTCONF) && is_array($_EXTCONF)) {
             array_merge($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT], $tmpArray);
     }
 } else if (!isset($tmpArray)) {
-    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT] = array();
+    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT] = [];
 }
 
 if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize'])) {

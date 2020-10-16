@@ -92,7 +92,7 @@ class Agency {
         $cmdKey = $controlData->getCmdKey();
         $conf = $confObj->getConf();
 
-        $voucherMarkerArray = array();
+        $voucherMarkerArray = [];
 
         if ($conf[$cmdKey . '.']['evalValues.']['captcha_response'] == 'voucher') {
             $voucherMarkerArray['###VOUCHER_IMAGE###'] = '<img src="' . \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::siteRelPath('voucher') . 'icon_tx_voucher_codes.gif" alt="" />';
@@ -211,7 +211,7 @@ class Agency {
             }
 
             if ($result) {
-                $row = array();
+                $row = [];
                 $row['tx_voucher_usedcode'] = $code;
                 if ($newFieldList != '') {
                     $newFieldArray = explode(',', $newFieldList);
