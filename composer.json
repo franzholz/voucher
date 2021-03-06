@@ -35,8 +35,7 @@
       "JambageCom\\Voucher\\": "Classes"
     },
     "classmap": [
-      "api",
-      "lib"
+      "api"
     ]
   },
   "replace": {

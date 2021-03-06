@@ -1,3 +1,6 @@
+2021-03-06 Franz Holzinger <franz@ttproducts.de>
+    * remove the lib folder and its contents class.tx_voucher_lang.php and locallang.xlf
+
 2020-10-02 Franz Holzinger <franz@ttproducts.de>
     * support für TYPO3 10.x
     * use renderType inputDateTime
