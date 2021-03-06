@@ -222,6 +222,5 @@ $result = [
     ]
 ];
 
-
 return $result;
 

@@ -22,7 +22,7 @@ call_user_func(function($extKey) {
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns($table, $temporaryColumns);
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
         $table,
-        'tx_voucher_usedcode;;;;1-1-1',
+        'tx_voucher_usedcode',
         '',
         'after:www'
     );
