@@ -55,7 +55,23 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 // TYPO3 Dokumentatiion: https://docs.typo3.org/typo3cms/CoreApiReference/ApiOverview/FormEngine/Introduction/Index.html
 
-class BackendModuleController extends BaseScriptClass {
+class BackendModuleController {
+
+    /**
+     * Loaded with the global array $MCONF which holds some module configuration from the conf.php file of backend modules.
+     *
+     * @see init()
+     * @var array
+     */
+    public $MCONF = [];
+
+    /**
+     * The integer value of the GET/POST var, 'id'. Used for submodules to the 'Web' module (page id)
+     *
+     * @see init()
+     * @var int
+     */
+    public $id;
 
     /**
     * @var array
@@ -80,6 +96,16 @@ class BackendModuleController extends BaseScriptClass {
     * @var string
     */
     public $body = '';
+
+    /**
+     * The module menu items array. Each key represents a key for which values can range between the items in the array of that key.
+     *
+     * @see init()
+     * @var array
+     */
+    public $MOD_MENU = [
+        'function' => []
+    ];
 
 
     /**
@@ -158,7 +184,6 @@ class BackendModuleController extends BaseScriptClass {
         \Psr\Http\Message\ServerRequestInterface $request,
         \Psr\Http\Message\ResponseInterface $response
     ) {
-// 		$this->init();
         $GLOBALS['SOBE'] = $this;
         $this->main();
 
@@ -167,7 +192,6 @@ class BackendModuleController extends BaseScriptClass {
         $this->moduleTemplate->setContent($this->content);
 
         $response->getBody()->write($this->moduleTemplate->renderContent());
-// 		$response = $response->withHeader('Content-Type', 'text/html; charset=utf-8');
         return $response;
     }
 
@@ -178,7 +202,6 @@ class BackendModuleController extends BaseScriptClass {
     */
     public function main()
     {
-//         $this->getButtons();
         $this->generateMenu();
         $this->moduleTemplate->addJavaScriptCode(
             'VoucherManagerInlineJavascript',
@@ -213,15 +236,6 @@ class BackendModuleController extends BaseScriptClass {
                 !$this->id
             )
         ) {
-
-            // Start document template object:
-// 			$this->doc = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Template\DocumentTemplate::class);
-// TODO: Auf $this->doc aufbauen damit das Funktionsmenü angezeigt wird.
-// $this->doc->funcMenu
-// 			$this->getPageRenderer()->loadRequireJsModule('TYPO3/CMS/Recordlist/Tooltip');
-
-                // JavaScript
-//             $this->moduleTemplate->addJavaScriptCode($javascript);
 
             // Begin to compile the whole page, starting out with page header:
             if (!$this->id) {
@@ -690,6 +704,24 @@ class BackendModuleController extends BaseScriptClass {
         }
 
         return $content;
+    }
+
+    /**
+     * Returns the Language Service
+     * @return LanguageService
+     */
+    protected function getLanguageService()
+    {
+        return $GLOBALS['LANG'];
+    }
+
+    /**
+     * Returns the Backend User
+     * @return BackendUserAuthentication
+     */
+    protected function getBackendUser()
+    {
+        return $GLOBALS['BE_USER'];
     }
 
     /**

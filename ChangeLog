@@ -1,3 +1,7 @@
+
+2021-12-14 Franz Holzinger <franz@ttproducts.de>
+    * Deprecation: #86225 - Remove class BaseScriptClass
+
 2021-03-06 Franz Holzinger <franz@ttproducts.de>
     * remove the lib folder and its contents class.tx_voucher_lang.php and locallang.xlf
 
