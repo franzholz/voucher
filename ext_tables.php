@@ -16,9 +16,10 @@ call_user_func(function () {
             '',
             '',
             [
-                'routeTarget' => \JambageCom\Voucher\Controller\BackendModuleController::class . '::mainAction',
+                'routeTarget' => \JambageCom\Voucher\Controller\BackendModuleController::class . '::handleRequest',
                 'access' => 'user,group',
                 'name' => 'web_txvoucherM1',
+                'icon' => 'EXT:voucher/Resources/Public/Images/Icons/BackendModuleController/module-icon.svg',
                 'labels' => [
                     'tabs_images' => [
                         'tab' => 'EXT:' . VOUCHER_EXT . '/Resources/Public/Images/Icons/BackendModuleController/module-icon.svg',

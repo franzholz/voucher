@@ -36,6 +36,8 @@ namespace JambageCom\Voucher\Controller;
 * @subpackage voucher
 */
 
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 use TYPO3\CMS\Backend\Form\Exception\AccessDeniedException;
 use TYPO3\CMS\Backend\Form\FormDataCompiler;
@@ -46,9 +48,13 @@ use TYPO3\CMS\Backend\Form\Utility\FormEngineUtility;
 
 
 use TYPO3\CMS\Backend\Module\BaseScriptClass;
+use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\Template\ModuleTemplate;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Http\HtmlResponse;
+use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+
 
 // TODO: ähnlich wie bei
 // TYPO3\CMS\Backend\Controller\EditDocumentController!
@@ -121,7 +127,25 @@ class BackendModuleController {
             'access' => 'admin',
             'script' => '_DISPATCH'
         ];
-        parent::init();
+        $this->init();
+    }
+
+    /**
+     * Initializes the backend module by setting internal variables, initializing the menu.
+     *
+     * @see menuConfig()
+     */
+    public function init()
+    {
+        // Name might be set from outside
+        if (!$this->MCONF['name']) {
+            $this->MCONF = $GLOBALS['MCONF'];
+        }
+        $this->id = (int)GeneralUtility::_GP('id');
+        $this->CMD = GeneralUtility::_GP('CMD');
+        $this->perms_clause = $this->getBackendUser()->getPagePermsClause(Permission::PAGE_SHOW);
+        $this->menuConfig();
+        $this->handleExternalFunctionValue();
     }
 
 
@@ -137,7 +161,69 @@ class BackendModuleController {
         $this->MOD_MENU['function']['create_voucher'] = $this->getLanguageService()->sL('LLL:EXT:voucher/Resources/Private/Language/locallang.xlf:create_voucher');
         $this->MOD_MENU['function']['general_voucher'] = $this->getLanguageService()->sL('LLL:EXT:voucher/Resources/Private/Language/locallang.xlf:general_voucher');
 
-        parent::menuConfig();
+        $this->baseMenuConfig();
+    }
+
+    /**
+     * Initializes the internal MOD_MENU array setting and unsetting items based on various conditions. It also merges in external menu items from the global array TBE_MODULES_EXT (see mergeExternalItems())
+     * Then MOD_SETTINGS array is cleaned up (see \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleData()) so it contains only valid values. It's also updated with any SET[] values submitted.
+     * Also loads the modTSconfig internal variable.
+     *
+     * @see init(), $MOD_MENU, $MOD_SETTINGS, \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleData(), mergeExternalItems()
+     */
+    public function baseMenuConfig()
+    {
+        // Page / user TSconfig settings and blinding of menu-items
+        $this->modTSconfig['properties'] = BackendUtility::getPagesTSconfig($this->id)['mod.'][$this->MCONF['name'] . '.'] ?? [];
+        $this->MOD_MENU['function'] = $this->mergeExternalItems($this->MCONF['name'], 'function', $this->MOD_MENU['function']);
+        $blindActions = $this->modTSconfig['properties']['menu.']['function.'] ?? [];
+        foreach ($blindActions as $key => $value) {
+            if (!$value && array_key_exists($key, $this->MOD_MENU['function'])) {
+                unset($this->MOD_MENU['function'][$key]);
+            }
+        }
+        $this->MOD_SETTINGS = BackendUtility::getModuleData($this->MOD_MENU, GeneralUtility::_GP('SET'), $this->MCONF['name'], $this->modMenu_type, $this->modMenu_dontValidateList, $this->modMenu_setDefaultList);
+    }
+
+    /**
+     * Merges menu items from global array $TBE_MODULES_EXT
+     *
+     * @param string $modName Module name for which to find value
+     * @param string $menuKey Menu key, eg. 'function' for the function menu.
+     * @param array $menuArr The part of a MOD_MENU array to work on.
+     * @return array Modified array part.
+     * @internal
+     * @see \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::insertModuleFunction(), menuConfig()
+     */
+    public function mergeExternalItems($modName, $menuKey, $menuArr)
+    {
+        $mergeArray = $GLOBALS['TBE_MODULES_EXT'][$modName]['MOD_MENU'][$menuKey];
+        if (is_array($mergeArray)) {
+            foreach ($mergeArray as $k => $v) {
+                if (((string)$v['ws'] === '' || $this->getBackendUser()->workspace === 0 && GeneralUtility::inList($v['ws'], 'online')) || $this->getBackendUser()->workspace === -1 && GeneralUtility::inList($v['ws'], 'offline') || $this->getBackendUser()->workspace > 0 && GeneralUtility::inList($v['ws'], 'custom')) {
+                    $menuArr[$k] = $this->getLanguageService()->sL($v['title']);
+                }
+            }
+        }
+        return $menuArr;
+    }
+
+    /**
+     * Returns configuration values from the global variable $TBE_MODULES_EXT for the module given.
+     * For example if the module is named "web_info" and the "function" key ($menuKey) of MOD_SETTINGS is "stat" ($value) then you will have the values of $TBE_MODULES_EXT['webinfo']['MOD_MENU']['function']['stat'] returned.
+     *
+     * @param string $modName Module name
+     * @param string $menuKey Menu key, eg. "function" for the function menu. See $this->MOD_MENU
+     * @param string $value Optionally the value-key to fetch from the array that would otherwise have been returned if this value was not set. Look source...
+     * @return mixed The value from the TBE_MODULES_EXT array.
+     * @see handleExternalFunctionValue()
+     */
+    public function getExternalItemConfig($modName, $menuKey, $value = '')
+    {
+        if (isset($GLOBALS['TBE_MODULES_EXT'][$modName])) {
+            return (string)$value !== '' ? $GLOBALS['TBE_MODULES_EXT'][$modName]['MOD_MENU'][$menuKey][$value] : $GLOBALS['TBE_MODULES_EXT'][$modName]['MOD_MENU'][$menuKey];
+        }
+        return null;
     }
 
     /**
@@ -147,21 +233,34 @@ class BackendModuleController {
     */
     protected function generateMenu()
     {
+        $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
         $menu = $this->moduleTemplate->getDocHeaderComponent()->getMenuRegistry()->makeMenu();
         $menu->setIdentifier('WebFuncJumpMenu');
+        $routePath = $this->moduleName;
+
         foreach ($this->MOD_MENU['function'] as $controller => $title) {
+            $urlParameters = 
+                [
+                    'id' => $this->id,
+                    'SET' => [
+                        'function' => $controller
+                    ]
+                ];
+
+            try {
+                $uri = $uriBuilder->buildUriFromRoute($routePath, $urlParameters);
+            } catch (\TYPO3\CMS\Backend\Routing\Exception\RouteNotFoundException $e) {
+                $uri = 
+                    $uriBuilder->buildUriFromRoutePath(
+                        $routePath,
+                        $urlParameters
+                    );
+            }
+
             $item = $menu
                 ->makeMenuItem()
                 ->setHref(
-                    BackendUtility::getModuleUrl(
-                        $this->moduleName,
-                        [
-                            'id' => $this->id,
-                            'SET' => [
-                                'function' => $controller
-                            ]
-                        ]
-                    )
+                    $uri
                 )
                 ->setTitle($title);
             if ($controller === $this->MOD_SETTINGS['function']) {
@@ -171,29 +270,21 @@ class BackendModuleController {
         }
         $this->moduleTemplate->getDocHeaderComponent()->getMenuRegistry()->addMenu($menu);
     }
-
     /**
-    * Injects the request object for the current request or subrequest
-    * Simply calls main() and writes the content to the response
-    *
-    * @param ServerRequestInterface $request the current request
-    * @param ResponseInterface $response
-    * @return ResponseInterface the response with the content
-    */
-    public function mainAction (
-        \Psr\Http\Message\ServerRequestInterface $request,
-        \Psr\Http\Message\ResponseInterface $response
-    ) {
-        $GLOBALS['SOBE'] = $this;
-        $this->main();
-
-        $get = $request->getQueryParams();
-        $post = $request->getParsedBody();
-        $this->moduleTemplate->setContent($this->content);
-
-        $response->getBody()->write($this->moduleTemplate->renderContent());
-        return $response;
+     * Loads $this->extClassConf with the configuration for the CURRENT function of the menu.
+     *
+     * @param string $MM_key The key to MOD_MENU for which to fetch configuration. 'function' is default since it is first and foremost used to get information per "extension object" (I think that is what its called)
+     * @param string $MS_value The value-key to fetch from the config array. If NULL (default) MOD_SETTINGS[$MM_key] will be used. This is useful if you want to force another function than the one defined in MOD_SETTINGS[function]. Call this in init() function of your Script Class: handleExternalFunctionValue('function', $forcedSubModKey)
+     * @see getExternalItemConfig(), init()
+     */
+    public function handleExternalFunctionValue($MM_key = 'function', $MS_value = null)
+    {
+        if ($MS_value === null) {
+            $MS_value = $this->MOD_SETTINGS[$MM_key];
+        }
+        $this->extClassConf = $this->getExternalItemConfig($this->MCONF['name'], $MM_key, $MS_value);
     }
+
 
     /**
     * Creates the module's content.
@@ -208,6 +299,9 @@ class BackendModuleController {
             'if (top.fsMod) { top.fsMod.recentIds["web"] = 0; }'
         );
 
+        $moduleId = 'txvoucherM1';
+        $this->moduleTemplate->setModuleId($moduleId);
+
         // Render content
         $this->renderModuleContent();
 
@@ -215,6 +309,24 @@ class BackendModuleController {
         $this->moduleTemplate->setTitle($this->getLanguageService()->getLL('title'));
     }
 
+    /**
+     * Main entry method: Dispatch to other actions - those method names that end with "Action".
+     *
+     * @param ServerRequestInterface $request the current request
+     * @return ResponseInterface the response with the content
+     */
+    public function handleRequest(ServerRequestInterface $request): ResponseInterface
+    {
+        $GLOBALS['SOBE'] = $this;
+        $this->main();
+
+        $get = $request->getQueryParams();
+        $post = $request->getParsedBody();
+        $this->moduleTemplate->setContent($this->content);
+
+        $response = new HtmlResponse($this->moduleTemplate->renderContent());
+        return $response;
+    }
 
     /**
     * Main function of the module. Result is written to $this->content

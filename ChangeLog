@@ -1,3 +1,6 @@
+2020-12-15 Franz Holzinger <franz@ttproducts.de>
+    * support für TYPO3 10 and 11
+    * remove support for TYPO3 < 9
 
 2021-12-14 Franz Holzinger <franz@ttproducts.de>
     * Deprecation: #86225 - Remove class BaseScriptClass
