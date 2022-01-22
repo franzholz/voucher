@@ -1,4 +1,9 @@
-2020-12-15 Franz Holzinger <franz@ttproducts.de>
+2022-01-22  Franz Holzinger  <franz@ttproducts.de>
+    * fix composer.json
+    * support for PHP 8
+    * bugfix Agency Hook namespace
+
+2021-12-15 Franz Holzinger <franz@ttproducts.de>
     * support für TYPO3 10 and 11
     * remove support for TYPO3 < 9
 

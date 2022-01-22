@@ -1,6 +1,6 @@
 <?php
 
-namespace JambageCom\Voucher\Controller;
+namespace JambageCom\Voucher\Hooks\Agency;
 
 /***************************************************************
 *  Copyright notice
@@ -56,7 +56,8 @@ class Agency {
         $dataObject
     )
     {
-        $this->languageObj = GeneralUtility::makeInstance(\JambageCom\Agency\Api\Localization::class);
+        $this->languageObj =
+            GeneralUtility::makeInstance(\JambageCom\Agency\Api\Localization::class);
         $cObj = GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer::class);
         $conf = $GLOBALS['TSFE']->tmpl->setup['plugin.'][AGENCY_EXT . '.'];
 

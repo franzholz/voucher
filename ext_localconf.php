@@ -3,7 +3,9 @@ defined('TYPO3_MODE') || die('Access denied.');
 
 call_user_func(function () {
 
-    define('VOUCHER_EXT', 'voucher');
+    if (!defined ('VOUCHER_EXT')) {
+        define('VOUCHER_EXT', 'voucher');
+    }
 
     if (!defined ('VOUCHER_EXT_LANGUAGE')) {
         define('VOUCHER_EXT_LANGUAGE_PATH', 'LLL:EXT:' . VOUCHER_EXT . '/Resources/Private/Language/');
@@ -49,7 +51,7 @@ call_user_func(function () {
         )
     ) {
         $hookExtension = 'agency';
-        $classPath = \JambageCom\Voucher\Agency\Agency::class;
+        $classPath = \JambageCom\Voucher\Hooks\Agency\Agency::class;
 
             // Agency marker hook
         $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$hookExtension]['registrationProcess'][] = $classPath;

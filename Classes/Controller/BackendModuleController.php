@@ -249,7 +249,7 @@ class BackendModuleController {
 
             try {
                 $uri = $uriBuilder->buildUriFromRoute($routePath, $urlParameters);
-            } catch (\TYPO3\CMS\Backend\Routing\Exception\RouteNotFoundException $e) {
+            } catch (\TYPO3\CMS\Backend\Routing\Exception\RouteNotFoundException) {
                 $uri = 
                     $uriBuilder->buildUriFromRoutePath(
                         $routePath,

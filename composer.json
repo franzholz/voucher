@@ -22,7 +22,7 @@
     "GPL-2.0-or-later"
   ],
   "require": {
-        "php": "^7.2",
+        "php": "^7.2 || ^8.0",
         "typo3/cms-core": "^9.5 || ^10.4 || ^11.5",
         "jambagecom/div2007": ">=1.10.15,<2"
   },
@@ -40,7 +40,7 @@
     ]
   },
   "replace": {
-    "jambagecom/voucher": "self.version"
+    "typo3-ter/voucher": "self.version"
   },
   "extra": {
     "typo3/cms": {
