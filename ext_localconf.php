@@ -7,7 +7,7 @@ call_user_func(function () {
         define('VOUCHER_EXT', 'voucher');
     }
 
-    if (!defined ('VOUCHER_EXT_LANGUAGE')) {
+    if (!defined ('VOUCHER_EXT_LANGUAGE_PATH')) {
         define('VOUCHER_EXT_LANGUAGE_PATH', 'LLL:EXT:' . VOUCHER_EXT . '/Resources/Private/Language/');
     }
 
