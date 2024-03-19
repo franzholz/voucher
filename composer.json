@@ -22,22 +22,19 @@
     "GPL-2.0-or-later"
   ],
   "require": {
-        "php": "^7.2 || ^8.0",
-        "typo3/cms-core": "^9.5 || ^10.4 || ^11.5",
-        "jambagecom/div2007": ">=1.10.15,<2"
+        "php": "^7.4 || ^8.0",
+        "typo3/cms-core": "^11.5 || ^12.4",
+        "jambagecom/div2007": "^1.17 || ^2.0"
   },
   "suggest": {
     "friendsoftypo3/typo3db-legacy": ">=1.0.0,<1.99",
     "jambagecom/agency": ">=0.8.3,<1",
-    "jambagecom/tt-products": ">=2.9.20,<4"
+    "jambagecom/tt-products": ">=2.15.4,<4"
   },
   "autoload": {
     "psr-4": {
       "JambageCom\\Voucher\\": "Classes"
-    },
-    "classmap": [
-      "api"
-    ]
+    }
   },
   "replace": {
     "typo3-ter/voucher": "self.version"

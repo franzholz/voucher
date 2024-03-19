@@ -1,18 +1,18 @@
 <?php
-defined('TYPO3_MODE') || die('Access denied.');
+defined('TYPO3') || die('Access denied.');
 
-call_user_func(function($extKey) {
-    $table = 'tx_voucher_codes';
+call_user_func(function ($extensionKey, $table): void {
+    $languageSubpath = '/Resources/Private/Language/';
 
     $temporaryColumns =
         [
             'code' => [
                 'exclude' => 1,
-                'label' => VOUCHER_EXT_LANGUAGE_PATH . 'locallang_db.xlf:' . $table . '.code',
+               'label' => 'LLL:EXT:' . $extensionKey . $languageSubpath . 'locallang_db.xlf:' . $table . '.code',
                 'config' => [
                     'type' => 'input',
-                    'size' => $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$extKey]['codeSize'],
-                    'max' => $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$extKey]['codeSize'],
+                    'size' => $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$extensionKey]['codeSize'],
+                    'max' => $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$extensionKey]['codeSize'],
                     'eval' => 'required,trim',
                 ]
             ]
@@ -25,5 +25,4 @@ call_user_func(function($extKey) {
         '',
         'after:title'
     );
-}, VOUCHER_EXT);
-
+}, 'voucher', basename(__FILE__, '.php'));

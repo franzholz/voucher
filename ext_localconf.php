@@ -1,14 +1,10 @@
 <?php
-defined('TYPO3_MODE') || die('Access denied.');
+defined('TYPO3') || die('Access denied.');
 
-call_user_func(function () {
+call_user_func(function ($extensionKey): void {
 
     if (!defined ('VOUCHER_EXT')) {
-        define('VOUCHER_EXT', 'voucher');
-    }
-
-    if (!defined ('VOUCHER_EXT_LANGUAGE_PATH')) {
-        define('VOUCHER_EXT_LANGUAGE_PATH', 'LLL:EXT:' . VOUCHER_EXT . '/Resources/Private/Language/');
+        define('VOUCHER_EXT', $extensionKey);
     }
 
     $extensionConfiguration = [];
@@ -16,25 +12,25 @@ call_user_func(function () {
 
     $extensionConfiguration = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(
         \TYPO3\CMS\Core\Configuration\ExtensionConfiguration::class
-    )->get(VOUCHER_EXT);
+    )->get($extensionKey);
 
     if (
-        isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]) &&
-        is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT])
+        isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$extensionKey]) &&
+        is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$extensionKey])
     ) {
-        $originalConfiguration = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT];
+        $originalConfiguration = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$extensionKey];
     }
 
     if (
         isset($extensionConfiguration) && is_array($extensionConfiguration
     )) {
-        $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT] =
+        $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$extensionKey] =
             array_merge($extensionConfiguration, $originalConfiguration);
-    } else if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT])) {
-        $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT] = [];
+    } else if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$extensionKey])) {
+        $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$extensionKey] = [];
     }
 
-    $extensionConfiguration = &$GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT];
+    $extensionConfiguration = &$GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$extensionKey];
 
     if (!isset($extensionConfiguration['codeSize'])) {
         $extensionConfiguration['codeSize'] = 32;
@@ -59,5 +55,5 @@ call_user_func(function () {
         $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$hookExtension]['registrationProcess_afterSaveCreate'][] = $classPath;
         $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$hookExtension]['confirmRegistrationClass'][] = $classPath;
     }
-});
+}, 'voucher');
 
