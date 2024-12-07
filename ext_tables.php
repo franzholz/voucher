@@ -1,14 +1,13 @@
 <?php
-defined('TYPO3_MODE') || die('Access denied.');
+defined('TYPO3') || die('Access denied.');
 
-call_user_func(function () {
+call_user_func(function ($extensionKey): void {
 
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToInsertRecords('tx_voucher_codes');
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::allowTableOnStandardPages('tx_voucher_codes');
 
     if (
-        TYPO3_MODE == 'BE' &&
-        $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['module']
+        $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$extensionKey]['module']
     ) {
         \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addModule(
             'web',
@@ -19,15 +18,14 @@ call_user_func(function () {
                 'routeTarget' => \JambageCom\Voucher\Controller\BackendModuleController::class . '::handleRequest',
                 'access' => 'user,group',
                 'name' => 'web_txvoucherM1',
-                'icon' => 'EXT:voucher/Resources/Public/Images/Icons/BackendModuleController/module-icon.svg',
+                'icon' => 'EXT:' . $extensionKey . '/Resources/Public/Images/Icons/BackendModuleController/module-icon.svg',
                 'labels' => [
                     'tabs_images' => [
-                        'tab' => 'EXT:' . VOUCHER_EXT . '/Resources/Public/Images/Icons/BackendModuleController/module-icon.svg',
+                        'tab' => 'EXT:' . $extensionKey . '/Resources/Public/Images/Icons/BackendModuleController/module-icon.svg',
                     ],
-                    'll_ref' => 'LLL:EXT:' . VOUCHER_EXT . '/Resources/Private/Language/locallang_mod.xlf',
+                    'll_ref' => 'LLL:EXT:' . $extensionKey . '/Resources/Private/Language/locallang_mod.xlf',
                 ],
             ]
         );
     }
-});
-
+}, 'voucher');
