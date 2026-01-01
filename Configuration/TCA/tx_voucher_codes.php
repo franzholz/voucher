@@ -24,7 +24,7 @@ $result = [
         'dividers2tabs' => '1',
         'searchFields' => 'uid,title,code,note',
         'security' => [
-            'ignorePageTypeRestriction' => '1',
+            'ignorePageTypeRestriction' => true,
         ],
         'rootLevel' => -1,
     ],
