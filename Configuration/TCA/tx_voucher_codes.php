@@ -23,6 +23,9 @@ $result = [
         'iconfile' => 'EXT:' . $extensionKey . '/Resources/Public/Icons/VoucherCodes.gif',
         'dividers2tabs' => '1',
         'searchFields' => 'uid,title,code,note',
+        'security' => [
+            'ignorePageTypeRestriction' => '1',
+        ],
         'rootLevel' => -1,
     ],
     'columns' => [

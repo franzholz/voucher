@@ -4,7 +4,6 @@ defined('TYPO3') || die('Access denied.');
 call_user_func(function ($extensionKey): void {
 
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToInsertRecords('tx_voucher_codes');
-    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::allowTableOnStandardPages('tx_voucher_codes');
 
     if (
         $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$extensionKey]['module']
