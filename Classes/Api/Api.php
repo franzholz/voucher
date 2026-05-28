@@ -398,7 +398,7 @@ class Api {
         return $result;
     }
 
-    static public function getGroupRowsByUser ($theUser, $bEnable = true) 
+    static public function getGroupRowsByUser ($theUser, $bEnable = true)
     {
 
         $result = false;
@@ -541,12 +541,18 @@ class Api {
             $queryString['time'] = time();
         }
 
+        /** @var \TYPO3\CMS\Frontend\Page\PageInformation $pageInformation */
+        $pageInformation = $GLOBALS['REQUEST']->getAttribute('frontend.page.information');
+
+        // Formerly $tsfe->id
+        $id = $pageInformation->getId();
+
         $linkConf = array('useCacheHash' => 0);
 
         $target = '';
         $reqURI = \JambageCom\Div2007\Utility\FrontendUtility::getTypoLink_URL(
             $cObj,
-            $GLOBALS['TSFE']->id,
+            $id,
             $queryString,
             $target,
             $linkConf
