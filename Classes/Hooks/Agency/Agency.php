@@ -58,8 +58,8 @@ class Agency {
     {
         $this->languageObj =
             GeneralUtility::makeInstance(\JambageCom\Agency\Api\Localization::class);
-        $cObj = GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer::class);
-        $conf = $GLOBALS['TSFE']->tmpl->setup['plugin.'][AGENCY_EXT . '.'];
+        $frontendTypoScriptSetupArray = $request->getAttribute('frontend.typoscript')->getSetupArray();
+        $conf = $frontendTypoScriptSetupArray['plugin.'][AGENCY_EXT . '.'] ?? [];
 
         $this->languageObj->init(
             'voucher',  // Todo: replace voucher by setup value
