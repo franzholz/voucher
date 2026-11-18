@@ -2,11 +2,6 @@
 defined('TYPO3') || die('Access denied.');
 
 call_user_func(function ($extensionKey): void {
-
-    if (!defined ('VOUCHER_EXT')) {
-        define('VOUCHER_EXT', $extensionKey);
-    }
-
     $extensionConfiguration = [];
     $originalConfiguration = [];
 

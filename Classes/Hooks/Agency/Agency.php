@@ -64,7 +64,7 @@ class Agency {
         $this->languageObj->init(
             'voucher',  // Todo: replace voucher by setup value
             $conf['_LOCAL_LANG.'],
-            'EXT:' . VOUCHER_EXT . DIV2007_LANGUAGE_SUBPATH
+            'EXT:voucher' . DIV2007_LANGUAGE_SUBPATH
         );
 
         $this->languageObj->loadLocalLang(

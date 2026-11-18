@@ -627,7 +627,7 @@ class Api {
         $newRow['tstamp'] = $time;
         $newRow['crdate'] = $time;
         $newRow['title'] = $title . '-' . date('Y-m-d H:i:s', $time);
-        $newRow['code'] = static::getToken($GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][VOUCHER_EXT]['codeSize']);
+        $newRow['code'] = static::getToken($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['voucher']['codeSize']);
 
         foreach ($row as $field => $value) {
             if (
