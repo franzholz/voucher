@@ -58,7 +58,7 @@ class Agency {
     {
         $this->languageObj =
             GeneralUtility::makeInstance(\JambageCom\Agency\Api\Localization::class);
-        $frontendTypoScriptSetupArray = $request->getAttribute('frontend.typoscript')->getSetupArray();
+        $frontendTypoScriptSetupArray = $GLOBALS['REQUEST']->getAttribute('frontend.typoscript')->getSetupArray();
         $conf = $frontendTypoScriptSetupArray['plugin.'][AGENCY_EXT . '.'] ?? [];
 
         $this->languageObj->init(
