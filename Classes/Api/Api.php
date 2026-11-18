@@ -1,163 +1,177 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JambageCom\Voucher\Api;
 
 /***************************************************************
-*  Copyright notice
-*
-*  (c) 2019 Franz Holzinger (franz@ttproducts.de)
-*  All rights reserved
-*
-*  This script is part of the TYPO3 project. The TYPO3 project is
-*  free software; you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation; either version 2 of the License or
-*  (at your option) any later version.
-*
-*  The GNU General Public License can be found at
-*  http://www.gnu.org/copyleft/gpl.html.
-*  A copy is found in the textfile GPL.txt and important notices to the license
-*  from the author is found in LICENSE.txt distributed with these scripts.
-*
-*
-*  This script is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  This copyright notice MUST APPEAR in all copies of the script!
-***************************************************************/
+ *  Copyright notice
+ *
+ *  (c) 2019-2026 Franz Holzinger (franz@ttproducts.de)
+ *  All rights reserved
+ *
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://gnu.org.
+ *  A copy is found in the textfile GPL.txt and important notices to the license
+ *  from the author is found in LICENSE.txt distributed with these scripts.
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ***************************************************************/
+
+use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Context\Context;
+use TYPO3\CMS\Core\Database\Connection;
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
+use TYPO3\CMS\Core\Database\Query\Restriction\FrontendRestrictionContainer;
+use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
+use TYPO3\CMS\Frontend\Page\PageInformation;
+
+use JambageCom\Div2007\Utility\FrontendUtility;
+use JambageCom\Div2007\Utility\HtmlUtility;
+
 /**
  * Part of the voucher (Vouchercode Manager) extension.
  *
  * API functions
  *
  * @author  Franz Holzinger <franz@ttproducts.de>
- * @maintainer	Franz Holzinger <franz@ttproducts.de>
- * @package TYPO3
- * @subpackage voucher
- *
+ * @maintainer Franz Holzinger <franz@ttproducts.de>
  */
+class Api
+{
+    private const TABLE_VOUCHER_CODES = 'tx_voucher_codes';
+    private const TABLE_LIMIT_GROUPS = 'sys_agency_fe_users_limit_fe_groups';
 
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-
-use JambageCom\Div2007\Utility\TableUtility;
-
-class Api {
-
-    static public function getRowFromCode (
-        $theCode,
-        $bEnable = true
-    )
-    {
-        $result = false;
-
-        if ($theCode != '') {
-            $voucherTable = 'tx_voucher_codes';
-
-            $where_clause =
-                'code=' . $GLOBALS['TYPO3_DB']->fullQuoteStr(
-                    $theCode,
-                    $voucherTable
-                );
-
-            if ($bEnable) {
-                $where_enable =  TableUtility::enableFields($voucherTable);
-                $where_clause .= $where_enable;
-
-                $where_enable = 'AND (usecounter>0 OR reusable=1 OR reusable=2)';
-                $where_clause .= $where_enable;
-            }
-
-            $rowArray = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('*', $voucherTable, $where_clause);
-            if (is_array($rowArray)) {
-                $result = $rowArray['0'];
-            }
+    public static function getRowFromCode(
+        string $theCode,
+        bool $bEnable = true
+    ): array|false {
+        if ($theCode === '') {
+            return false;
         }
 
-        return $result;
-    }
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable(self::TABLE_VOUCHER_CODES);
 
-    static public function reduceCountOrDisable (array $codeRow)
-    {
-        if (
-            $codeRow['uid'] &&
-            $codeRow['deleted'] == '0' &&
-            $codeRow['reusable'] != '1' &&
-            $codeRow['reusable'] != '2'
-        ) {
-            $voucherTable = 'tx_voucher_codes';
-            $row = [];
-            $where_clause = 'uid=' . intval($codeRow['uid']);
+        if (!$bEnable) {
+            $queryBuilder->getRestrictions()->removeAll();
+        }
 
-            if (
-                $codeRow['usecounter'] > '1'
-            ) {
-                $row['usecounter'] = $codeRow['usecounter'] - 1;
-            } else if (
-                $codeRow['usecounter'] == 1
-            ) {
-                $row['usecounter'] = 0;
-            }
+        $queryBuilder
+            ->select('*')
+            ->from(self::TABLE_VOUCHER_CODES)
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'code',
+                    $queryBuilder->createNamedParameter($theCode)
+                )
+            );
 
-            $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
-                $voucherTable,
-                $where_clause,
-                $row
+        if ($bEnable) {
+            $queryBuilder->andWhere(
+                $queryBuilder->expr()->or(
+                    $queryBuilder->expr()->gt('usecounter', $queryBuilder->createNamedParameter(0, Connection::PARAM_INT)),
+                    $queryBuilder->expr()->eq('reusable', $queryBuilder->createNamedParameter(1, Connection::PARAM_INT)),
+                    $queryBuilder->expr()->eq('reusable', $queryBuilder->createNamedParameter(2, Connection::PARAM_INT))
+                )
             );
         }
+
+        $row = $queryBuilder->executeQuery()->fetchAssociative();
+
+        return $row !== false ? $row : false;
     }
 
-    static public function redeemVoucher (
-        $code,
-        $theTable,
-        &$row,
-        &$newFieldList,
-        &$errorCode
-    )
+    public static function reduceCountOrDisable(array $codeRow): void
     {
+        $uid = (int)($codeRow['uid'] ?? 0);
+        $deleted = (int)($codeRow['deleted'] ?? 0);
+        $reusable = (int)($codeRow['reusable'] ?? 0);
+        $useCounter = (int)($codeRow['usecounter'] ?? 0);
+
+        if (
+            $uid > 0
+            && $deleted === 0
+            && $reusable !== 1
+            && $reusable !== 2
+        ) {
+            $updateData = [];
+            if ($useCounter > 1) {
+                $updateData['usecounter'] = $useCounter - 1;
+            } elseif ($useCounter === 1) {
+                $updateData['usecounter'] = 0;
+            }
+
+            if ($updateData !== []) {
+                GeneralUtility::makeInstance(ConnectionPool::class)
+                    ->getConnectionForTable(self::TABLE_VOUCHER_CODES)
+                    ->update(
+                        self::TABLE_VOUCHER_CODES,
+                        $updateData,
+                        ['uid' => $uid]
+                    );
+            }
+        }
+    }
+
+    public static function redeemVoucher(
+        string $code,
+        string $theTable,
+        array &$row,
+        string &$newFieldList,
+        int &$errorCode
+    ): bool {
         $result = false;
 
-        if ($theTable == 'fe_users' && $code != '') {
+        if ($theTable === 'fe_users' && $code !== '') {
             $codeRow = static::getRowFromCode($code, false);
             if (
-                is_array($codeRow) &&
-                $codeRow['uid'] &&
-                $codeRow['acquired_groups'] != ''
+                is_array($codeRow)
+                && !empty($codeRow['uid'])
+                && !empty($codeRow['acquired_groups'])
             ) {
-                $newFieldArray = [];
-                if ($newFieldList != '') {
-                    $newFieldArray = explode(',', $newFieldList);
-                }
-                $origGroupArray = $row['usergroup'];
-                if (!is_array($row['usergroup'])) {
-                    $origGroupArray = explode(',', $row['usergroup']);
-                }
-                $codeGroupArray = explode(',', $codeRow['acquired_groups']);
-                $newGroupArray = array_merge($origGroupArray, $codeGroupArray);
-                $newGroupArray = array_unique($newGroupArray);
+                $newFieldArray = $newFieldList !== ''
+                    ? GeneralUtility::trimExplode(',', $newFieldList, true)
+                    : [];
+
+                $origGroupArray = is_array($row['usergroup'] ?? null)
+                    ? $row['usergroup']
+                    : GeneralUtility::intExplode(',', (string)($row['usergroup'] ?? ''), true);
+
+                $codeGroupArray = GeneralUtility::intExplode(',', (string)$codeRow['acquired_groups'], true);
+                $newGroupArray = array_unique(array_merge($origGroupArray, $codeGroupArray));
                 $row['usergroup'] = implode(',', $newGroupArray);
                 $newFieldArray[] = 'usergroup';
 
-                $time = time();
+                $time = self::getCurrentTimestamp();
                 $acquiredSeconds = 0;
 
-                if (!empty($GLOBALS['TYPO3_CONF_VARS']['SYS']['serverTimeZone'])) {
-                    $time += ($GLOBALS['TYPO3_CONF_VARS']['SYS']['serverTimeZone'] * 3600);
+                if (!empty($codeRow['acquired_days'])) {
+                    $acquiredSeconds = (int)$codeRow['acquired_days'] * 86400;
                 }
 
-                if ($codeRow['acquired_days']) {
-                    $acquiredSeconds = $codeRow['acquired_days'] * 24 * 60 * 60;
-                }
-
-                $newFieldArray = array_unique($newFieldArray);
-                $newFieldList = implode(',', $newFieldArray);
+                $newFieldList = implode(',', array_unique($newFieldArray));
 
                 $result = static::addLimitedGroups(
                     $codeRow,
                     $time,
                     $acquiredSeconds,
-                    $row['uid'],
+                    (int)($row['uid'] ?? 0),
                     $codeGroupArray,
                     $errorCode,
                     0
@@ -168,23 +182,129 @@ class Api {
         return $result;
     }
 
-    static public function checkCodeFormerlyUsed (
-        $code,
-        $rowArray,
-        &$errorCode
-    )
-    {
-        $result = true;
+    public static function checkCodeFormerlyUsed(
+        string $code,
+        array $rowArray,
+        int &$errorCode
+    ): bool {
+        foreach ($rowArray as $row) {
+            $codeArray = GeneralUtility::trimExplode(',', (string)($row['codes'] ?? ''), true);
+            if (in_array($code, $codeArray, true)) {
+                $errorCode = 1;
+                return false;
+            }
+        }
 
-        if (
-            is_array($rowArray) &&
-            count($rowArray)
-        ) {
+        return true;
+    }
+
+    /**
+     * @param int $errorCode 1 = code has already been used, 2 = database write error
+     */
+    public static function addLimitedGroups(
+        array $codeRow,
+        int $time,
+        int $acquiredSeconds,
+        int $theUser,
+        array $groupArray,
+        int &$errorCode,
+        int $pid = 0
+    ): bool {
+        $code = (string)($codeRow['code'] ?? '');
+        $result = true;
+        $errorCode = 0;
+
+        $fieldArray = [
+            'pid' => $pid,
+            'tstamp' => $time,
+            'deleted' => 0,
+            'hidden' => 0,
+        ];
+
+        if ($acquiredSeconds > 0) {
+            $fieldArray['endtime'] = $time + $acquiredSeconds;
+        }
+
+        $connection = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getConnectionForTable(self::TABLE_LIMIT_GROUPS);
+
+        $queryBuilder = $connection->createQueryBuilder();
+        $queryBuilder->getRestrictions()->removeAll();
+        $rowArray = $queryBuilder
+            ->select('*')
+            ->from(self::TABLE_LIMIT_GROUPS)
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'fe_users_uid',
+                    $queryBuilder->createNamedParameter($theUser, Connection::PARAM_INT)
+                )
+            )
+            ->executeQuery()
+            ->fetchAllAssociative();
+
+        $addGroupArray = [];
+
+        if ($rowArray !== []) {
+            $codeValid = true;
+            $reusable = (int)($codeRow['reusable'] ?? 0);
+
+            if ($reusable !== 2 && $reusable !== 4) {
+                $codeValid = static::checkCodeFormerlyUsed($code, $rowArray, $errorCode);
+            }
+
+            if (!$codeValid) {
+                return false;
+            }
+
+            $foundGroupArray = [];
+
             foreach ($rowArray as $row) {
-                $codeArray = explode(',', $row['codes']);
-                if (in_array($code, $codeArray)) {
+                $feGroupsUid = (int)$row['fe_groups_uid'];
+                if (in_array($feGroupsUid, $groupArray, true)) {
+                    $codeArray = GeneralUtility::trimExplode(',', (string)($row['codes'] ?? ''), true);
+                    if (!in_array($code, $codeArray, true) || $reusable > 0) {
+                        $updateFields = $fieldArray;
+                        $endtime = (int)$row['endtime'];
+                        if ($time > $endtime) {
+                            $endtime = $time;
+                        }
+                        $updateFields['endtime'] = $endtime + $acquiredSeconds;
+                        if (!in_array($code, $codeArray, true)) {
+                            $codeArray[] = $code;
+                            $updateFields['codes'] = implode(',', $codeArray);
+                        }
+
+                        $connection->update(
+                            self::TABLE_LIMIT_GROUPS,
+                            $updateFields,
+                            [
+                                'fe_users_uid' => $theUser,
+                                'fe_groups_uid' => $feGroupsUid,
+                            ]
+                        );
+                    }
+                }
+                $foundGroupArray[] = $feGroupsUid;
+            }
+
+            $addGroupArray = array_diff($groupArray, $foundGroupArray);
+        } else {
+            $addGroupArray = $groupArray;
+        }
+
+        if ($addGroupArray !== []) {
+            $insertFields = $fieldArray;
+            $insertFields['crdate'] = $time;
+
+            foreach ($addGroupArray as $theGroup) {
+                $insertFields['fe_users_uid'] = $theUser;
+                $insertFields['fe_groups_uid'] = (int)$theGroup;
+                $insertFields['codes'] = $code;
+
+                $affectedRows = $connection->insert(self::TABLE_LIMIT_GROUPS, $insertFields);
+                if ($affectedRows < 1) {
+                    $errorCode = 2;
                     $result = false;
-                    $errorCode = 1;
                     break;
                 }
             }
@@ -193,396 +313,279 @@ class Api {
         return $result;
     }
 
-    /* $errorCode: 1 ... code has already been used.
-    *              2 ... database write error
-    */
-    static public function addLimitedGroups (
-        $codeRow,
-        $time,
-        $acquiredSeconds,
-        $theUser,
-        $groupArray,
-        &$errorCode,
-        $pid = 0
-    )
+    public static function removeOutdatedGroups(): bool
     {
-        $code = $codeRow['code'];
-        $result = true;
-        $errorCode = 0;
+        $connectionPool = GeneralUtility::makeInstance(ConnectionPool::class);
+        $feUsersConnection = $connectionPool->getConnectionForTable('fe_users');
+        $limitConnection = $connectionPool->getConnectionForTable(self::TABLE_LIMIT_GROUPS);
 
-        if (is_array($groupArray)) {
-            $addGroupArray = [];
+        $time = self::getCurrentTimestamp();
+        $simAccessTime = GeneralUtility::makeInstance(Context::class)
+            ->getPropertyFromAspect('date', 'timestamp', time());
 
-            $fieldArray = array (
-                'pid' => intval($pid),
-                'tstamp' => $time,
-                'deleted' => 0,
-                'hidden' => 0,
-            );
+        $userQueryBuilder = $feUsersConnection->createQueryBuilder();
+        $rowArray = $userQueryBuilder
+            ->select('*')
+            ->from('fe_users')
+            ->executeQuery()
+            ->fetchAllAssociative();
 
-            if ($acquiredSeconds) {
-                $fieldArray['endtime'] = $time + $acquiredSeconds;
+        $endtimeField = $GLOBALS['TCA'][self::TABLE_LIMIT_GROUPS]['ctrl']['enablecolumns']['endtime'] ?? 'endtime';
+        $offsetSeconds = 86400; // 1 day offset
+
+        foreach ($rowArray as $row) {
+            if (empty($row['usergroup'])) {
+                continue;
             }
-            $table = 'sys_agency_fe_users_limit_fe_groups';
-            $where_clause = 'fe_users_uid=' . intval($theUser);
 
-            $rowArray =
-                $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
-                    '*',
-                    $table,
-                    $where_clause
+            $feUserUid = (int)$row['uid'];
+            $limitQueryBuilder = $limitConnection->createQueryBuilder();
+            $limitQueryBuilder->getRestrictions()
+                ->removeAll()
+                ->add(GeneralUtility::makeInstance(DeletedRestriction::class))
+                ->add(GeneralUtility::makeInstance(HiddenRestriction::class));
+
+            $limitQueryBuilder
+                ->select('*')
+                ->from(self::TABLE_LIMIT_GROUPS)
+                ->where(
+                    $limitQueryBuilder->expr()->eq(
+                        'fe_users_uid',
+                        $limitQueryBuilder->createNamedParameter($feUserUid, Connection::PARAM_INT)
+                    )
                 );
 
-            if (
-                is_array($rowArray) &&
-                count($rowArray)
-            ) {
-                $codeValid = true;
-
-                if (
-                    $codeRow['reusable'] != '2' &&
-                    $codeRow['reusable'] != '4'
-                ) {
-                    $codeValid =
-                        static::checkCodeFormerlyUsed(
-                            $code,
-                            $rowArray,
-                            $errorCode
-                        );
-                }
-
-                if (!$codeValid) {
-                    $result = false;
-                } else {
-                    $foundGroupArray = [];
-
-                    foreach ($rowArray as $row) {
-                        if (in_array($row['fe_groups_uid'], $groupArray)) {
-                            $codeArray = explode(',', $row['codes']);
-                            if (
-                                !in_array($code, $codeArray) ||
-                                $codeRow['reusable']
-                            ) {
-                                $updateFields = $fieldArray;
-                                $endtime = $row['endtime'];
-                                if ($time > $endtime) {
-                                    $endtime = $time;
-                                }
-                                $updateFields['endtime'] = $endtime + $acquiredSeconds; // add new time to an already acquired group
-                                if (!in_array($code, $codeArray)) {
-                                    $updateFields['codes'] = $row['codes'] . ',' . $code;
-                                }
-                                $where = $where_clause . ' AND fe_groups_uid=' . intval($row['fe_groups_uid']);
-                                $GLOBALS['TYPO3_DB']->exec_UPDATEquery($table, $where, $updateFields);
-                            }
-                        }
-                        $foundGroupArray[] = $row['fe_groups_uid'];
-                    }
-
-                    $addGroupArray = array_diff($groupArray, $foundGroupArray);
-                }
-            } else {
-                $addGroupArray = $groupArray;
+            if ($endtimeField !== '') {
+                $limitQueryBuilder->andWhere(
+                    $limitQueryBuilder->expr()->gt($endtimeField, $limitQueryBuilder->createNamedParameter(0, Connection::PARAM_INT)),
+                    $limitQueryBuilder->expr()->lt($endtimeField, $limitQueryBuilder->createNamedParameter($simAccessTime - $offsetSeconds, Connection::PARAM_INT))
+                );
             }
 
-            if (count($addGroupArray)) {
+            $outdatedRows = $limitQueryBuilder->executeQuery()->fetchAllAssociative();
 
-                $insertFields = $fieldArray;
-                $insertFields['crdate'] = $time;
+            if ($outdatedRows !== []) {
+                $outdatedGroupIds = array_column($outdatedRows, 'fe_groups_uid');
+                $outdatedRecordUids = array_column($outdatedRows, 'uid');
 
-                foreach ($addGroupArray as $theGroup) {
-                    $insertFields['fe_users_uid'] = intval($theUser);
-                    $insertFields['fe_groups_uid'] = intval($theGroup);
-                    $insertFields['codes'] = $code;
+                $currentGroupIds = GeneralUtility::intExplode(',', (string)$row['usergroup'], true);
+                $remainingGroupIds = array_diff($currentGroupIds, $outdatedGroupIds);
 
-                    $insertResult = $GLOBALS['TYPO3_DB']->exec_INSERTquery($table, $insertFields);
-                    $newId = 0;
-                    if ($insertResult) {
-                        $newId = $GLOBALS['TYPO3_DB']->sql_insert_id();
-                    }
-                    if (!$newId) {
-                        $result = false;
-                        break;
-                    }
+                $feUsersConnection->update(
+                    'fe_users',
+                    ['usergroup' => implode(',', $remainingGroupIds)],
+                    ['uid' => $feUserUid]
+                );
+
+                foreach ($outdatedRecordUids as $recordUid) {
+                    $limitConnection->update(
+                        self::TABLE_LIMIT_GROUPS,
+                        [
+                            'deleted' => 1,
+                            'tstamp' => $time,
+                        ],
+                        ['uid' => (int)$recordUid]
+                    );
                 }
             }
         }
 
-        return $result;
+        return true;
     }
 
-    static public function removeOutdatedGroups ()
+    public static function getGroupRowsByUser(int|string $theUser, bool $bEnable = true): array|false
     {
-        $result = false;
-        $table = 'fe_users';
-
-        $time = time();
-        $acquiredSeconds = 0;
-
-        if (!empty($GLOBALS['TYPO3_CONF_VARS']['SYS']['serverTimeZone'])) {
-            $time += ($GLOBALS['TYPO3_CONF_VARS']['SYS']['serverTimeZone'] * 3600);
+        if ($theUser === '' || (int)$theUser <= 0) {
+            return false;
         }
 
-        $where_clause = '1=1';
-        $where_enable = TableUtility::enableFields($table);
-        $where_clause .= $where_enable;
-        $rowArray = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('*', $table, $where_clause);
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable(self::TABLE_LIMIT_GROUPS);
 
-        if (
-            isset($rowArray) &&
-            is_array($rowArray)
-        ) {
-            foreach ($rowArray as $row) {
-                if (!$row['usergroup']) {
-                    continue;
-                }
-                $sysTable = 'sys_agency_fe_users_limit_fe_groups';
-                $where_clause_feuser =
-                    $sysTable . '.fe_users_uid=' . intval($row['uid']);
-                $where_clause = $where_clause_feuser;
-                $where_clause .= ' AND ' . $sysTable . '.deleted=0 AND ' . $sysTable . '.hidden=0';
-                $ctrl = $GLOBALS['TCA'][$sysTable]['ctrl'];
-
-                if (is_array($ctrl)) {
-
-                    if ($ctrl['enablecolumns']['endtime']) {
-                        $field = $sysTable . '.' . $ctrl['enablecolumns']['endtime'];
-                        $offsetDays = 1; // offset to the current date
-                        $offsetSeconds = $offsetDays * 24 * 60 * 60;
-                        $where_clause .= ' AND (' . $field . '>0 AND ' . $field . '<' . ($GLOBALS['SIM_ACCESS_TIME'] - $offsetSeconds) . ')';
-                    }
-                }
-
-                $groupOutdatedArray =
-                    $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
-                        '*',
-                        $sysTable,
-                        $where_clause,
-                        '',
-                        '',
-                        '',
-                        'fe_groups_uid'
-                    );
-
-                if (
-                    isset($groupOutdatedArray) &&
-                    is_array($groupOutdatedArray) &&
-                    count($groupOutdatedArray)
-                ) {
-                    $outdatedGroupIds = array_keys($groupOutdatedArray);
-                    $currentGroupIds = explode(',', $row['usergroup']);
-                    $remainingGroupIds = array_diff($currentGroupIds, $outdatedGroupIds);
-                    $fieldArray = [];
-                    $fieldArray['usergroup'] = implode(',', $remainingGroupIds);
-
-                    $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
-                        $table,
-                        'uid=' . intval($row['uid']),
-                        $fieldArray
-                    );
-
-                    $fieldArray = [];
-                    $fieldArray['deleted'] = 1;
-                    $fieldArray['tstamp'] = $time;
-
-                    $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
-                        $sysTable,
-                        $where_clause,
-                        $fieldArray
-                    );
-                }
-            }
+        if (!$bEnable) {
+            $queryBuilder->getRestrictions()->removeAll();
         }
-        $result = true;
 
-        return $result;
+        return $queryBuilder
+            ->select('*')
+            ->from(self::TABLE_LIMIT_GROUPS)
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'fe_users_uid',
+                    $queryBuilder->createNamedParameter((int)$theUser, Connection::PARAM_INT)
+                )
+            )
+            ->executeQuery()
+            ->fetchAllAssociative();
     }
 
-    static public function getGroupRowsByUser ($theUser, $bEnable = true)
-    {
-
-        $result = false;
-
-        if ($theUser != '') {
-            $sysTable = 'sys_agency_fe_users_limit_fe_groups';
-
-            $where_clause =
-                'fe_users_uid=' . intval($theUser);
-
-            if ($bEnable) {
-                $where_enable = TableUtility::enableFields($sysTable);
-                $where_clause .= $where_enable;
-            }
-
-            $rowArray = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('*', $sysTable, $where_clause);
-            $result = $rowArray;
-        }
-
-        return $result;
-    }
-
-    static public function getCodesByUser (
-        $theUser,
-        $bEnable = true
-    )
+    public static function getCodesByUser(int|string $theUser, bool $bEnable = true): string|false
     {
         $rowArray = static::getGroupRowsByUser($theUser, $bEnable);
 
-        $result = false;
-
-        if (
-            $rowArray != false &&
-            is_array($rowArray)
-        ) {
-            $codesArray = [];
-            if (is_array($rowArray)) {
-                foreach ($rowArray as $row) {
-                    $codesArray[] = $row['codes'];
-                }
-            }
-            $codes = implode(',', $codesArray);
-            $codesArray = explode(',', $codes);
-            $codesArray = array_unique($codesArray);
-            $result = implode(',', $codesArray);
+        if (!is_array($rowArray) || $rowArray === []) {
+            return false;
         }
 
-        return $result;
+        $codesArray = [];
+        foreach ($rowArray as $row) {
+            if (!empty($row['codes'])) {
+                $codesArray = array_merge(
+                    $codesArray,
+                    GeneralUtility::trimExplode(',', (string)$row['codes'], true)
+                );
+            }
+        }
+
+        return implode(',', array_unique($codesArray));
     }
 
-    static public function groupOut (
-        $cObj,
-        $feUserRow,
-        $showGroupTimeRange = false,
-        $where_clause = '',
-        $groupEnable = true,
-        $expirationText = '',
-        array $headerTextArray = [] // required indexes: group, expiration, voucher
-    )
-    {
+    public static function groupOut(
+        ?ContentObjectRenderer $cObj,
+        array $feUserRow,
+        bool $showGroupTimeRange = false,
+        string $whereClause = '',
+        bool $groupEnable = true,
+        string $expirationText = '',
+        array $headerTextArray = []
+    ): string {
         $groupTable = 'fe_groups';
         $groupCodeRowArray = false;
         $classTd = '<div class="td">';
         $classTr = '<div class="tr">';
         $classTable = '<div class="table">';
         $divEnd = '</div>';
-        $xhtmlFix = \JambageCom\Div2007\Utility\HtmlUtility::determineXhtmlFix();
+        $xhtmlFix = HtmlUtility::determineXhtmlFix();
 
-        if ($showGroupTimeRange) {
-            $groupCodeRowArray = static::getGroupRowsByUser($feUserRow['uid'], true);
+        if ($showGroupTimeRange && !empty($feUserRow['uid'])) {
+            $groupCodeRowArray = static::getGroupRowsByUser((int)$feUserRow['uid'], true);
         }
 
-        if ($where_clause == '') {
-            $where_clause = 'uid IN (' . $feUserRow['usergroup'] . ')';
-        }
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable($groupTable);
 
         if ($groupEnable) {
-            $where_enable = $cObj->enableFields($groupTable);
-            $where_clause .= $where_enable;
+            $queryBuilder->setRestrictions(GeneralUtility::makeInstance(FrontendRestrictionContainer::class));
+        } else {
+            $queryBuilder->getRestrictions()->removeAll();
         }
 
-        $groupRowArray = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('*', $groupTable, $where_clause);
+        $queryBuilder->select('*')->from($groupTable);
 
-        $result = '';
-        $outArray = [];
+        if ($whereClause === '') {
+            $userGroupIds = GeneralUtility::intExplode(',', (string)($feUserRow['usergroup'] ?? ''), true);
+            if ($userGroupIds === []) {
+                $userGroupIds =;
+            }
+            $queryBuilder->where(
+                $queryBuilder->expr()->in(
+                    'uid',
+                    $queryBuilder->createNamedParameter($userGroupIds, Connection::PARAM_INT_ARRAY)
+                )
+            );
+        } else {
+            $queryBuilder->where($whereClause);
+        }
+
+        $groupRowArray = $queryBuilder->executeQuery()->fetchAllAssociative();
         $groupOutArray = [];
 
-        if (is_array($groupRowArray)) {
-            foreach ($groupRowArray as $groupRow) {
-                $out = '';
-                $outDetails = '';
+        foreach ($groupRowArray as $groupRow) {
+            $outDetails = '';
 
-                if (
-                    $groupCodeRowArray &&
-                    is_array($groupCodeRowArray)
-                ) {
-                    $foundGroup = false;
-                    foreach($groupCodeRowArray as $groupCodeRow) {
-                        if ($groupCodeRow['fe_groups_uid'] == $groupRow['uid']) {
-                            $enddate = '';
-                            if ($groupCodeRow['endtime']) {
-                                $enddate =  date('Y-m-d', $groupCodeRow['endtime']);
-                            }
-                            $outDetails = $classTd . $expirationText . ' ' . $enddate . $divEnd;
-                            $outDetails .= $classTd . $groupCodeRow['codes'] . $divEnd;
-                            $foundGroup = true;
-                            break;
-                        }
+            if (is_array($groupCodeRowArray)) {
+                foreach ($groupCodeRowArray as $groupCodeRow) {
+                    if ((int)$groupCodeRow['fe_groups_uid'] === (int)$groupRow['uid']) {
+                        $enddate = !empty($groupCodeRow['endtime'])
+                            ? date('Y-m-d', (int)$groupCodeRow['endtime'])
+                            : '';
+                        $outDetails = $classTd . $expirationText . ' ' . $enddate . $divEnd;
+                        $outDetails .= $classTd . htmlspecialchars((string)$groupCodeRow['codes']) . $divEnd;
+                        break;
                     }
                 }
-                $out = $classTr . $classTd . $groupRow['description'] . $divEnd . $outDetails . $divEnd;
-                $groupOutArray[] = $out;
             }
+            $groupOutArray[] = $classTr . $classTd . (string)$groupRow['description'] . $divEnd . $outDetails . $divEnd;
         }
 
         $headerHtml = '';
         foreach ($headerTextArray as $headerText) {
             $headerHtml .= $classTd . $headerText . $divEnd;
         }
-        $outArray[] = $classTr . $headerHtml . $divEnd;
-        $outArray[] = implode('', $groupOutArray) . '<br' . $xhtmlFix . '>';
-        $result = $classTable . implode('', $outArray) . $divEnd;
-        return $result;
+
+        $outArray = [
+            $classTr . $headerHtml . $divEnd,
+            implode('', $groupOutArray) . '<br' . $xhtmlFix . '>',
+        ];
+
+        return $classTable . implode('', $outArray) . $divEnd;
     }
 
-    /* $developer: true during development. This is needed to deactivate the  browser´s cache for Javascript */
-    static public function getVoucherAjaxUrl (
-        $extKey,
-        $cObj,
-        $developer = false
-    )
-    {
-        $queryString = array(
-            'L' => GeneralUtility::_GP('L'),
+    /**
+     * @param bool $developer true during development to deactivate the browser's cache for JavaScript
+     */
+    public static function getVoucherAjaxUrl(
+        string $extKey,
+        ContentObjectRenderer $cObj,
+        bool $developer = false
+    ): string {
+        $request = self::getRequest();
+        $languageId = 0;
+
+        if ($request instanceof ServerRequestInterface) {
+            $language = $request->getAttribute('language');
+            if ($language !== null && method_exists($language, 'getLanguageId')) {
+                $languageId = $language->getLanguageId();
+            } else {
+                $languageId = (int)($request->getQueryParams()['L'] ?? 0);
+            }
+        }
+
+        $queryString = [
+            'L' => $languageId,
             'no_cache' => 1,
             'eID' => $extKey,
-        );
+        ];
 
         if ($developer) {
             $queryString['time'] = time();
         }
 
-        /** @var \TYPO3\CMS\Frontend\Page\PageInformation $pageInformation */
-        $pageInformation = $GLOBALS['REQUEST']->getAttribute('frontend.page.information');
+        $id = 0;
+        if ($request instanceof ServerRequestInterface) {
+            /** @var PageInformation|null $pageInformation */
+            $pageInformation = $request->getAttribute('frontend.page.information');
+            if ($pageInformation instanceof PageInformation) {
+                $id = $pageInformation->getId();
+            }
+        }
 
-        // Formerly $tsfe->id
-        $id = $pageInformation->getId();
-
-        $linkConf = array('useCacheHash' => 0);
-
+        $linkConf = ['useCacheHash' => 0];
         $target = '';
-        $reqURI = \JambageCom\Div2007\Utility\FrontendUtility::getTypoLink_URL(
+
+        return FrontendUtility::getTypoLink_URL(
             $cObj,
             $id,
             $queryString,
             $target,
             $linkConf
         );
-
-        return $reqURI;
     }
 
-    // origin: http://stackoverflow.com/questions/1846202/php-how-to-generate-a-random-unique-alphanumeric-string/13733588#13733588
-    static public function crypto_rand_secure ($minimum, $maximum)
+    public static function crypto_rand_secure(int $minimum, int $maximum): int
     {
-        $range = $maximum - $minimum;
-        if ($range < 1) return $minimum; // not so random...
-        $log = ceil(log($range, 2));
-        $bytes = (int) ($log / 8) + 1; // length in bytes
-        $bits = (int) $log + 1; // length in bits
-        $filter = (int) (1 << $bits) - 1; // set all lower bits to 1
-        do {
-            $rnd = hexdec(bin2hex(openssl_random_pseudo_bytes($bytes)));
-            $rnd = $rnd & $filter; // discard irrelevant bits
-        } while ($rnd >= $range);
-        return $minimum + $rnd;
+        if ($maximum <= $minimum) {
+            return $minimum;
+        }
+
+        return random_int($minimum, $maximum);
     }
 
-    static public function getToken (
-        $length,
-        $onlyUppercase = true,
-        $specialCharacters = false
-    )
-    {
+    public static function getToken(
+        int $length,
+        bool $onlyUppercase = true,
+        bool $specialCharacters = false
+    ): string {
         $token = '';
         $codeAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         if (!$onlyUppercase) {
@@ -592,63 +595,75 @@ class Api {
         if ($specialCharacters) {
             $codeAlphabet .= '§$%&/()[]{}+-#|<>';
         }
+
         $maximum = strlen($codeAlphabet) - 1;
         for ($i = 0; $i < $length; $i++) {
-            $token .= $codeAlphabet[static::crypto_rand_secure(0, $maximum)];
+            $token .= $codeAlphabet[random_int(0, $maximum)];
         }
+
         return $token;
     }
 
-    static public function insertVoucher (
-        &$row,
-        $onlyUppercase = true,
-        $specialCharacters = false
-    )
-    {
-        $result = true;
+    public static function insertVoucher(
+        array &$row,
+        bool $onlyUppercase = true,
+        bool $specialCharacters = false
+    ): bool {
+        $time = self::getCurrentTimestamp();
+        $codeSize = self::getConfiguredCodeSize();
 
-        $table = 'tx_voucher_codes';
-        if (!is_array($row)) {
-            $row = [];
-        }
-        $newRow = [];
-        $time = time();
-        if (!empty($GLOBALS['TYPO3_CONF_VARS']['SYS']['serverTimeZone'])) {
-            $time += ($GLOBALS['TYPO3_CONF_VARS']['SYS']['serverTimeZone'] * 3600);
-        }
+        $allowedFields = array_keys($GLOBALS['TCA'][self::TABLE_VOUCHER_CODES]['columns'] ?? []);
+        $allowedFields = array_merge(['tstamp', 'crdate', 'deleted'], $allowedFields);
 
-        $allowedFields = array_keys($GLOBALS['TCA'][$table]['columns']);
-        $allowedFields = array_merge(array('tstamp', 'crdate', 'deleted'), $allowedFields);
-        $title = 'AUTO';
-        if (isset($row['title'])) {
-            $title = $row['title'];
-        }
+        $title = isset($row['title']) && $row['title'] !== '' ? (string)$row['title'] : 'AUTO';
 
-        $newRow['tstamp'] = $time;
-        $newRow['crdate'] = $time;
-        $newRow['title'] = $title . '-' . date('Y-m-d H:i:s', $time);
-        $newRow['code'] = static::getToken($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['voucher']['codeSize']);
+        $newRow = [
+            'tstamp' => $time,
+            'crdate' => $time,
+            'title' => $title . '-' . date('Y-m-d H:i:s', $time),
+            'code' => static::getToken($codeSize, $onlyUppercase, $specialCharacters),
+        ];
 
         foreach ($row as $field => $value) {
-            if (
-                isset($value) &&
-                in_array($field, $allowedFields)
-            ) {
+            if (isset($value) && in_array($field, $allowedFields, true)) {
                 $newRow[$field] = $value;
             }
         }
 
-        $GLOBALS['TYPO3_DB']->exec_INSERTquery($table, $newRow);
-        $newId = $GLOBALS['TYPO3_DB']->sql_insert_id();
+        $connection = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getConnectionForTable(self::TABLE_VOUCHER_CODES);
 
-        if ($newId) {
-            $newRow['uid'] = $newId;
+        $affectedRows = $connection->insert(self::TABLE_VOUCHER_CODES, $newRow);
+        if ($affectedRows > 0) {
+            $newRow['uid'] = (int)$connection->lastInsertId();
             $row = $newRow;
-        } else {
-            $result = false;
+            return true;
         }
 
-        return $result;
+        return false;
+    }
+
+    private static function getCurrentTimestamp(): int
+    {
+        $time = time();
+        if (!empty($GLOBALS['TYPO3_CONF_VARS']['SYS']['serverTimeZone'])) {
+            $time += ((int)$GLOBALS['TYPO3_CONF_VARS']['SYS']['serverTimeZone'] * 3600);
+        }
+
+        return $time;
+    }
+
+    private static function getConfiguredCodeSize(): int
+    {
+        $config = GeneralUtility::makeInstance(ExtensionConfiguration::class)->get('voucher');
+        return is_array($config) && isset($config['codeSize']) && (int)$config['codeSize'] > 0
+            ? (int)$config['codeSize']
+            : 32;
+    }
+
+    private static function getRequest(): ?ServerRequestInterface
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? $GLOBALS['REQUEST'] ?? null;
+        return $request instanceof ServerRequestInterface ? $request : null;
     }
 }
-
