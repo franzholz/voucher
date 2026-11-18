@@ -1,104 +1,112 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JambageCom\Voucher\Hooks\Agency;
 
 /***************************************************************
-*  Copyright notice
-*
-*  (c) 2019 Franz Holzinger (franz@ttproducts.de)
-*  All rights reserved
-*
-*  This script is part of the TYPO3 project. The TYPO3 project is
-*  free software; you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation; either version 2 of the License, or
-*  (at your option) any later version.
-*
-*  The GNU General Public License can be found at
-*  http://www.gnu.org/copyleft/gpl.html.
-*
-*  This script is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  This copyright notice MUST APPEAR in all copies of the script!
-***************************************************************/
+ *  Copyright notice
+ *
+ *  (c) 2019-2026 Franz Holzinger (franz@ttproducts.de)
+ *  All rights reserved
+ *
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://gnu.org.
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ***************************************************************/
+
+use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\PathUtility;
+
+use JambageCom\Agency\Api\Localization;
+use JambageCom\Agency\Request\Parameters;
+use JambageCom\Voucher\Api\Api;
 
 /**
  * Part of the voucher (Vouchercode Manager) extension.
  *
- * voucher hook functions
+ * Hook for agency markers and registration validation
  *
- * @author	Franz Holzinger <franz@ttproducts.de>
- *
- * @package TYPO3
- * @subpackage agency
- *
- *
+ * @author  Franz Holzinger <franz@ttproducts.de>
+ * @maintainer Franz Holzinger <franz@ttproducts.de>
  */
+class Agency
+{
+    public ?Localization $languageObj = null;
+    public bool $bHasBeenInitialised = false;
+    public string $scriptRelPath = 'Classes/Hooks/Agency/Agency.php';
 
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-
-use JambageCom\Agency\Request\Parameters;
-
-use JambageCom\Voucher\Api\Api;
-
-/**
- * Hook for agency markers
- */
-class Agency {
-    public $languageObj;
-    public $bHasBeenInitialised = false;
-    public $scriptRelPath = 'Classes/Hooks/Agency/Agency.php'; // Path to this script relative to the extension dir.
-
-    public function init (
-        $dataObject
-    )
+    public function init(mixed $dataObject = null): void
     {
-        $this->languageObj =
-            GeneralUtility::makeInstance(\JambageCom\Agency\Api\Localization::class);
-        $frontendTypoScriptSetupArray = $GLOBALS['REQUEST']->getAttribute('frontend.typoscript')->getSetupArray();
-        $conf = $frontendTypoScriptSetupArray['plugin.'][AGENCY_EXT . '.'] ?? [];
+        $this->languageObj = GeneralUtility::makeInstance(Localization::class);
+
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? $GLOBALS['REQUEST'] ?? null;
+        $frontendTypoScriptSetupArray = [];
+        if ($request instanceof ServerRequestInterface) {
+            $frontendTypoScript = $request->getAttribute('frontend.typoscript');
+            if ($frontendTypoScript !== null && method_exists($frontendTypoScript, 'getSetupArray')) {
+                $frontendTypoScriptSetupArray = $frontendTypoScript->getSetupArray();
+            }
+        }
+
+        $agencyExt = defined('AGENCY_EXT') ? AGENCY_EXT : 'agency';
+        $languageSubpath = defined('DIV2007_LANGUAGE_SUBPATH') ? DIV2007_LANGUAGE_SUBPATH : '/Resources/Private/Language/';
+        $conf = $frontendTypoScriptSetupArray['plugin.'][$agencyExt . '.'] ?? [];
 
         $this->languageObj->init(
-            'voucher',  // Todo: replace voucher by setup value
-            $conf['_LOCAL_LANG.'],
-            'EXT:' . VOUCHER_EXT . DIV2007_LANGUAGE_SUBPATH
+            'voucher',
+            $conf['_LOCAL_LANG.'] ?? [],
+            'EXT:voucher' . $languageSubpath
         );
 
         $this->languageObj->loadLocalLang(
-            'locallang_agency.xlf'
+            'locallang_agency.xlf',
             false
         );
 
         $this->bHasBeenInitialised = true;
     }
 
-    public function needsInit ()
+    public function needsInit(): bool
     {
         return !$this->bHasBeenInitialised;
     }
 
     /**
-    * Sets the value of captcha markers
-    */
-    public function addGlobalMarkers (
-        &$markerArray,
-        $controlData,
-        $confObj,
-        $markerObject
-    )
-    {
+     * Sets the value of captcha markers
+     */
+    public function addGlobalMarkers(
+        array &$markerArray,
+        object $controlData,
+        object $confObj,
+        object $markerObject
+    ): void {
+        if ($this->needsInit()) {
+            $this->init();
+        }
+
         $cmdKey = $controlData->getCmdKey();
         $conf = $confObj->getConf();
-
         $voucherMarkerArray = [];
 
-        if ($conf[$cmdKey . '.']['evalValues.']['captcha_response'] == 'voucher') {
-            $voucherMarkerArray['###VOUCHER_IMAGE###'] = '<img src="' . \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::siteRelPath('voucher') . 'icon_tx_voucher_codes.gif" alt="" />';
-            $labelname = 'notice';
-            $voucherMarkerArray['###VOUCHER_NOTICE###'] = $this->languageObj->getLabel($labelname);
+        if (($conf[$cmdKey . '.']['evalValues.']['captcha_response'] ?? '') === 'voucher') {
+            $iconPath = PathUtility::getPublicResourceWebPath('EXT:voucher/Resources/Public/Icons/VoucherCodes.gif');
+            $voucherMarkerArray['###VOUCHER_IMAGE###'] = '<img src="' . htmlspecialchars($iconPath) . '" alt="" />';
+            $voucherMarkerArray['###VOUCHER_NOTICE###'] = $this->languageObj?->getLabel('notice') ?? '';
         } else {
             $voucherMarkerArray['###VOUCHER_IMAGE###'] = '';
         }
@@ -107,35 +115,32 @@ class Agency {
     }
 
     /**
-    * Evaluates the voucher code
-    */
-    public function evalValues (
-        $staticInfoObj,
-        $theTable,
-        $dataArray,
-        $origArray,
-        $markContentArray,
-        $cmdKey,
-        $requiredArray,
-        $checkFieldArray,
-        $theField,
-        $cmdParts,
-        $bInternal,
-        &$test,
-        $dataObject
-    )
-    {
+     * Evaluates the voucher code
+     */
+    public function evalValues(
+        mixed $staticInfoObj,
+        string $theTable,
+        array $dataArray,
+        array $origArray,
+        array $markContentArray,
+        string $cmdKey,
+        array $requiredArray,
+        array $checkFieldArray,
+        string $theField,
+        array $cmdParts,
+        bool $bInternal,
+        mixed &$test,
+        mixed $dataObject
+    ): string {
         $errorField = '';
 
         if (
-            $theField == 'captcha_response' &&
-            trim($cmdParts[0]) == 'voucher' && // Todo: do not use voucher but check the $conf setup for voucher
-            isset($dataArray[$theField])
+            $theField === 'captcha_response'
+            && trim((string)($cmdParts[0] ?? '')) === 'voucher'
+            && isset($dataArray[$theField])
         ) {
-            $rowArray = Api::getRowFromCode($dataArray[$theField]);
-            if (
-                !$rowArray
-            ) {
+            $rowArray = Api::getRowFromCode((string)$dataArray[$theField]);
+            if (!$rowArray) {
                 $errorField = $theField;
             }
         }
@@ -143,125 +148,130 @@ class Agency {
         return $errorField;
     }
 
-    public function getFailureText (
-        $failureText,
-        $dataArray,
-        $theField,
-        $theRule,
-        $label,
-        $orderNo = '',
-        $param = '',
-        $bInternal = false
-    )
-    {
+    public function getFailureText(
+        string $failureText,
+        array $dataArray,
+        string $theField,
+        string $theRule,
+        string $label,
+        string|int $orderNo = '',
+        string $param = '',
+        bool $bInternal = false
+    ): string {
+        if ($this->needsInit()) {
+            $this->init();
+        }
+
         $errorText = '';
 
-        if ($theRule) {
+        if ($theRule !== '') {
             $labelname = 'evalErrors_' . $theRule . '_' . $theField;
-            $errorText = $this->languageObj->getLabel($labelname);
-            if ($errorText) {
-                $errorText = sprintf($errorText, $dataArray[$theField]);
+            $errorText = (string)($this->languageObj?->getLabel($labelname) ?? '');
+            if ($errorText !== '') {
+                $errorText = sprintf($errorText, (string)($dataArray[$theField] ?? ''));
             }
         }
 
         return $errorText;
     }
 
-    public function registrationProcess_afterSaveCreate (
+    public function registrationProcess_afterSaveCreate(
         Parameters $parameters,
-        $theTable,
+        string $theTable,
         array $dataArray,
         array $origArray,
-        $token,
+        string $token,
         array &$newRow,
-        $cmd,
-        $cmdKey,
-        $pid,
-        $extraList,
-        Data $pObj
-    )
-    {
+        string $cmd,
+        string $cmdKey,
+        int $pid,
+        string $extraList,
+        object $pObj
+    ): bool {
         $result = true;
         $newFieldList = '';
         $conf = $parameters->getConf();
+        $uid = (int)($dataArray['uid'] ?? 0);
+        $code = (string)($dataArray['captcha_response'] ?? '');
+        $usedCode = (string)($newRow['tx_voucher_usedcode'] ?? '');
 
         if (
-            is_int($dataArray['uid']) &&
-            $dataArray['captcha_response'] != '' &&
-            $newRow['tx_voucher_usedcode'] == ''
+            $uid > 0
+            && $code !== ''
+            && $usedCode === ''
         ) {
-            $code = $dataArray['captcha_response'];
             $codeRow = Api::getRowFromCode($code);
 
             if (is_array($codeRow)) {
                 Api::reduceCountOrDisable($codeRow);
             }
 
-            if (
-                !$conf['enableEmailConfirmation']
-            ) {
-                $errorCode = '';
-                $result =
-                    Api::redeemVoucher(
-                        $code,
-                        'fe_users',
-                        $newRow,
-                        $newFieldList,
-                        $errorCode
-                    );
+            if (empty($conf['enableEmailConfirmation'])) {
+                $errorCode = 0;
+                $result = Api::redeemVoucher(
+                    $code,
+                    'fe_users',
+                    $newRow,
+                    $newFieldList,
+                    $errorCode
+                );
             }
 
             if ($result) {
-                $row = [];
-                $row['tx_voucher_usedcode'] = $code;
-                if ($newFieldList != '') {
-                    $newFieldArray = explode(',', $newFieldList);
+                $updateFields = [
+                    'tx_voucher_usedcode' => $code,
+                ];
+
+                if ($newFieldList !== '') {
+                    $newFieldArray = GeneralUtility::trimExplode(',', $newFieldList, true);
                     foreach ($newFieldArray as $newField) {
-                        if ($newField != '') {
-                            $row[$newField] = $newRow[$newField];
+                        if (array_key_exists($newField, $newRow)) {
+                            $updateFields[$newField] = $newRow[$newField];
                         }
                     }
                 }
-                $where_clause = 'uid = ' . intval($dataArray['uid']);
-                $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
-                    $theTable,
-                    $where_clause,
-                    $row
-                );
+
+                GeneralUtility::makeInstance(ConnectionPool::class)
+                    ->getConnectionForTable($theTable)
+                    ->update(
+                        $theTable,
+                        $updateFields,
+                        ['uid' => $uid]
+                    );
             }
         }
 
         return $result;
     }
 
-    public function confirmRegistrationClass_preProcess (
+    public function confirmRegistrationClass_preProcess(
         Parameters $parameters,
-        $theTable,
-        array $row,
-        $newFieldList,
-        SetFixed $pObj,
-        &$errorCode
-    )
-    {
+        string $theTable,
+        array &$row,
+        string &$newFieldList,
+        object $pObj,
+        int|string &$errorCode
+    ): bool {
         $result = true;
         $conf = $parameters->getConf();
 
         if (
-            !$errorCode &&
-            !$conf['enableAdminReview']
+            !$errorCode
+            && empty($conf['enableAdminReview'])
         ) {
-            $result =
-                Api::redeemVoucher(
-                    $row['tx_voucher_usedcode'],
-                    $theTable,
-                    $row,
-                    $newFieldList,
-                    $errorCode
-                );
+            $intErrorCode = (int)$errorCode;
+            $result = Api::redeemVoucher(
+                (string)($row['tx_voucher_usedcode'] ?? ''),
+                $theTable,
+                $row,
+                $newFieldList,
+                $intErrorCode
+            );
+            if ($intErrorCode !== 0) {
+                $errorCode = $intErrorCode;
+            }
         }
 
         return $result;
     }
 }
-
-

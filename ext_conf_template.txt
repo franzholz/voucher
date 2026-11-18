@@ -1,7 +1,5 @@
-  # cat=basic/enable; type=string; label=Code Size: Size of the code field.
+# cat=basic/settings; type=int+; label=Code Size: Length of the generated voucher codes (default: 32).
 codeSize = 32
-  # cat=basic/enable; type=string; label=Backend Module: Activate the Voucher Code Backend Module in the TYPO3 backend. This does not work at the moment! You must leave it at 0!
-module = 0
-  # cat=basic/enable; type=string; label=Hooks: Activate the hooks for the following possible extensions: agency
-hooks =
 
+# cat=basic/enable; type=string; label=Hooks: Comma-separated list of extensions to activate hooks for (e.g. agency).
+hooks =
